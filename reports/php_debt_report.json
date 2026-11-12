@@ -1,0 +1,60 @@
+{
+    "language": "PHP",
+    "metrics": {
+        "total_files": 4,
+        "total_dependencies": 3,
+        "files_with_dependencies": 3,
+        "files_without_dependencies": 1,
+        "total_cycles": 1,
+        "total_missing_dependencies": 5,
+        "files_with_missing_dependencies": 1,
+        "total_references": 8,
+        "average_dependencies": 0.75,
+        "files_in_cycles": 3,
+        "cycle_file_ratio": 0.75,
+        "dependency_density": 0.25
+    },
+    "debt_assessment": {
+        "missing_ratio": 0.625,
+        "cycle_ratio": 0.75,
+        "dependency_density": 0.25,
+        "debt_score": 60.0
+    },
+    "missing_dependencies": {
+        "test_dependencies.php": [
+            {
+                "path": "config.php",
+                "type": 3,
+                "line": 4
+            },
+            {
+                "path": "database.php",
+                "type": 1,
+                "line": 5
+            },
+            {
+                "path": "functions.php",
+                "type": 4,
+                "line": 6
+            },
+            {
+                "path": "header.php",
+                "type": 2,
+                "line": 7
+            },
+            {
+                "path": "config.php",
+                "type": 3,
+                "line": 9
+            }
+        ]
+    },
+    "cycles": [
+        [
+            "cycles_php\\A.php",
+            "cycles_php\\B.php",
+            "cycles_php\\C.php",
+            "cycles_php\\A.php"
+        ]
+    ]
+}

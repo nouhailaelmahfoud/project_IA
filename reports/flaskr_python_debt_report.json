@@ -1,0 +1,25 @@
+{
+    "language": "Python",
+    "metrics": {
+        "total_files": 9,
+        "total_dependencies": 12,
+        "files_with_dependencies": 8,
+        "files_without_dependencies": 1,
+        "total_cycles": 0,
+        "total_missing_dependencies": 0,
+        "files_with_missing_dependencies": 0,
+        "total_references": 12,
+        "average_dependencies": 1.33,
+        "files_in_cycles": 0,
+        "cycle_file_ratio": 0.0,
+        "dependency_density": 0.1667
+    },
+    "debt_assessment": {
+        "missing_ratio": 0.0,
+        "cycle_ratio": 0.0,
+        "dependency_density": 0.1667,
+        "debt_score": 3.33
+    },
+    "missing_dependencies": {},
+    "cycles": []
+}
