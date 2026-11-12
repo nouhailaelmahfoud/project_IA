@@ -1,0 +1,195 @@
+{
+  "language": "python",
+  "issues": [
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 1,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_URLLIB",
+      "severity": "warning",
+      "message": "Module urllib réorganisé en Python 3",
+      "recommendation": "Utiliser urllib.request / urllib.parse",
+      "code_snippet": "import urllib2"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 4,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print \"hello\""
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 5,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_XRANGE",
+      "severity": "high",
+      "message": "xrange n'existe plus en Python 3",
+      "recommendation": "Remplacer xrange par range",
+      "code_snippet": "for i in xrange(3):"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 6,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print i"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 8,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_HAS_KEY",
+      "severity": "high",
+      "message": "dict.has_key() supprimé en Python 3",
+      "recommendation": "Utiliser l'opérateur in",
+      "code_snippet": "if d.has_key(\"a\"):"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 9,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_DICT",
+      "severity": "warning",
+      "message": "dict.keys()/values()/items() renvoient des vues",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "print d.keys()"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 9,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print d.keys()"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 11,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_UNICODE",
+      "severity": "high",
+      "message": "Le type unicode n'existe plus en Python 3",
+      "recommendation": "Utiliser str",
+      "code_snippet": "x = unicode(\"abc\")"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 12,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_EXCEPT",
+      "severity": "critical",
+      "message": "Syntaxe except X, e de Python 2",
+      "recommendation": "Écrire except X as e",
+      "code_snippet": "except ValueError, e:"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 13,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_RAISE",
+      "severity": "critical",
+      "message": "Syntaxe raise de Python 2",
+      "recommendation": "Utiliser raise Exception(...)",
+      "code_snippet": "raise ValueError, \"bad\""
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 14,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_NE",
+      "severity": "critical",
+      "message": "Opérateur <> supprimé en Python 3",
+      "recommendation": "Remplacer <> par !=",
+      "code_snippet": "if 1 <> 2:"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 15,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_RAW_INPUT",
+      "severity": "high",
+      "message": "raw_input n'existe plus en Python 3",
+      "recommendation": "Utiliser input()",
+      "code_snippet": "name = raw_input(\"name? \")"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 23,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_NONZERO",
+      "severity": "warning",
+      "message": "Construction Python 2 détectée (règle nonzero)",
+      "recommendation": "Voir la documentation de 2to3 pour cette règle",
+      "code_snippet": "def __nonzero__(self):"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 28,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_DICT",
+      "severity": "warning",
+      "message": "dict.keys()/values()/items() renvoient des vues",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "for k, v in d.iteritems():"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 29,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print >>sys.stderr, k"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 30,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_NUMLITERALS",
+      "severity": "warning",
+      "message": "Construction Python 2 détectée (règle numliterals)",
+      "recommendation": "Voir la documentation de 2to3 pour cette règle",
+      "code_snippet": "n = 10L"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 31,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_REPR",
+      "severity": "critical",
+      "message": "Backticks supprimés en Python 3",
+      "recommendation": "Utiliser repr()",
+      "code_snippet": "s = `n`"
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 32,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_EXEC",
+      "severity": "critical",
+      "message": "Instruction exec de Python 2",
+      "recommendation": "Utiliser la fonction exec()",
+      "code_snippet": "exec \"x = 1\""
+    },
+    {
+      "file_path": "samples/legacy/old_py2.py",
+      "line": 33,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_UNICODE",
+      "severity": "high",
+      "message": "Le type unicode n'existe plus en Python 3",
+      "recommendation": "Utiliser str",
+      "code_snippet": "return u\"texte\""
+    }
+  ]
+}
