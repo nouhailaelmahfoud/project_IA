@@ -1,6 +1,17 @@
-
+# Environnement Python
 .venv/
 .env
+
+# Fichiers Python temporaires
 __pycache__/
+*.py[cod]
 *.bak
+
+# Fichiers de travail temporaires
 scratch/
+
+# IDE
+.idea/
+
+# Dépendances PHP
+vendor/

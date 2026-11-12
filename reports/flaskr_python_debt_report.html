@@ -1,0 +1,341 @@
+
+        <!DOCTYPE html>
+        <html lang="fr">
+
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
+            <title>Dette technique - Python</title>
+
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 30px;
+                    background: #f4f6f9;
+                    color: #263445;
+                }
+
+                h1, h2 {
+                    color: #263445;
+                }
+
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+
+                .score-card {
+                    background: white;
+                    padding: 25px;
+                    border-radius: 10px;
+                    text-align: center;
+                    margin-bottom: 25px;
+                }
+
+                .score {
+    font-size: 42px;
+    font-weight: bold;
+    margin: 10px;
+    color: #28a745;
+}
+
+                .progress {
+                    background: #e0e0e0;
+                    height: 15px;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    margin-top: 15px;
+                }
+
+                .progress-bar {
+                    background: #3478c0;
+                    height: 100%;
+                    width: 3.33%;
+                }
+
+                .statistics {
+                    display: grid;
+                    grid-template-columns:
+                        repeat(auto-fit, minmax(180px, 1fr));
+                    gap: 15px;
+                    margin-bottom: 30px;
+                }
+
+                .card {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    text-align: center;
+                }
+
+                .card h3 {
+                    font-size: 25px;
+                    margin: 10px;
+                }
+
+                .section {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin-bottom: 25px;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                th, td {
+                    padding: 12px;
+                    border: 1px solid #ddd;
+                    text-align: left;
+                }
+
+                th {
+                    background: #263445;
+                    color: white;
+                }
+
+                tr:nth-child(even) {
+                    background: #f2f2f2;
+                }
+
+                .table-container {
+                    overflow-x: auto;
+                }
+            </style>
+        </head>
+
+        <body>
+
+            <div class="header">
+                <h1>Rapport de dette technique</h1>
+                <h2>Langage : Python</h2>
+            </div>
+
+            <div class="score-card">
+                <h2>Score global de dette technique</h2>
+
+                <div class="score">
+    3.33 / 100
+</div>
+
+<p>
+    Niveau de dette technique :
+    <strong style="color: #28a745;">
+        Faible
+    </strong>
+</p>
+
+                <div class="progress">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+
+            <h2>Indicateurs principaux</h2>
+
+            <div class="statistics">
+
+    <div class="card">
+        <h3>9</h3>
+        <p>Fichiers analysés</p>
+    </div>
+
+    <div class="card">
+        <h3>12</h3>
+        <p>Dépendances existantes</p>
+    </div>
+
+    <div class="card">
+        <h3>8</h3>
+        <p>Fichiers avec dépendances</p>
+    </div>
+
+    <div class="card">
+        <h3>1</h3>
+        <p>Fichiers sans dépendances</p>
+    </div>
+
+    <div class="card">
+        <h3>1.33</h3>
+        <p>Moyenne des dépendances par fichier</p>
+    </div>
+
+    <div class="card">
+        <h3>0</h3>
+        <p>Dépendances manquantes</p>
+    </div>
+
+    <div class="card">
+        <h3>0</h3>
+        <p>Cycles détectés</p>
+    </div>
+
+</div>
+
+            <div class="section">
+                <h2>Facteurs de dette technique</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Facteur</th>
+                                <th>Valeur</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            
+                <tr>
+                    <td>Taux de dépendances manquantes</td>
+                    <td>0.0</td>
+                </tr>
+            
+                <tr>
+                    <td>Taux de fichiers impliqués dans des cycles</td>
+                    <td>0.0</td>
+                </tr>
+            
+                <tr>
+                    <td>Densité des dépendances</td>
+                    <td>0.1667</td>
+                </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Ensemble des indicateurs</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Indicateur</th>
+                                <th>Valeur</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            
+                <tr>
+                    <td>total_files</td>
+                    <td>9</td>
+                </tr>
+            
+                <tr>
+                    <td>total_dependencies</td>
+                    <td>12</td>
+                </tr>
+            
+                <tr>
+                    <td>files_with_dependencies</td>
+                    <td>8</td>
+                </tr>
+            
+                <tr>
+                    <td>files_without_dependencies</td>
+                    <td>1</td>
+                </tr>
+            
+                <tr>
+                    <td>total_cycles</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>total_missing_dependencies</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>files_with_missing_dependencies</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>total_references</td>
+                    <td>12</td>
+                </tr>
+            
+                <tr>
+                    <td>average_dependencies</td>
+                    <td>1.33</td>
+                </tr>
+            
+                <tr>
+                    <td>files_in_cycles</td>
+                    <td>0</td>
+                </tr>
+            
+                <tr>
+                    <td>cycle_file_ratio</td>
+                    <td>0.0</td>
+                </tr>
+            
+                <tr>
+                    <td>dependency_density</td>
+                    <td>0.1667</td>
+                </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Dépendances manquantes</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fichier source</th>
+                                <th>Dépendance</th>
+                                <th>Type</th>
+                                <th>Ligne</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            
+                <tr>
+                    <td colspan="4">Aucune dépendance manquante</td>
+                </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Cycles de dépendances</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Chemin du cycle</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            
+                <tr>
+                    <td colspan="2">Aucun cycle détecté</td>
+                </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </body>
+        </html>
+        
