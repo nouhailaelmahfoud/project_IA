@@ -119,7 +119,14 @@ class PythonPlugin(LanguagePlugin):
             except Exception:
                 continue
 
+            accepted_type = getattr(fixer, "_accept_type", None)
+
             for node in list(fresh_tree.pre_order()):
+                # Certaines règles ne s'appliquent qu'à un type de noeud
+                # (ex. les nombres) : on respecte cette limite
+                if (fixer.pattern is None and accepted_type is not None
+                        and node.type != accepted_type):
+                    continue
                 try:
                     results = fixer.match(node)
                     if not results:
