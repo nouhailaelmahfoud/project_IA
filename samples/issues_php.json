@@ -1,0 +1,75 @@
+{
+  "language": "php",
+  "issues": [
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 6,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_OLD_CONSTRUCTOR",
+      "severity": "high",
+      "message": "Constructeur à l'ancienne (méthode du nom de la classe) : ce n'est plus un constructeur en PHP 8",
+      "recommendation": "Renommer la méthode en __construct",
+      "code_snippet": "function Client($name) {"
+    },
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 11,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_CURLY_BRACE_OFFSET",
+      "severity": "critical",
+      "message": "Accès à un index avec des accolades {} supprimé en PHP 8",
+      "recommendation": "Utiliser des crochets []",
+      "code_snippet": "return $text{0};"
+    },
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 15,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_REQUIRED_AFTER_OPTIONAL",
+      "severity": "warning",
+      "message": "Paramètre obligatoire placé après un paramètre optionnel",
+      "recommendation": "Réordonner les paramètres ou donner une valeur par défaut",
+      "code_snippet": "function build($prefix = \"id\", $number) {"
+    },
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 20,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_MYSQL_API",
+      "severity": "critical",
+      "message": "L'extension mysql_* est supprimée",
+      "recommendation": "Utiliser mysqli ou PDO",
+      "code_snippet": "$result = mysql_query(\"SELECT * FROM users\", $link);"
+    },
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 21,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_EACH",
+      "severity": "critical",
+      "message": "each() est supprimée en PHP 8",
+      "recommendation": "Utiliser une boucle foreach",
+      "code_snippet": "while (list($key, $value) = each($row)) {"
+    },
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 24,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_CREATE_FUNCTION",
+      "severity": "critical",
+      "message": "create_function() est supprimée en PHP 8",
+      "recommendation": "Utiliser une fonction anonyme (closure)",
+      "code_snippet": "$f = create_function('$a', 'return $a * 2;');"
+    },
+    {
+      "file_path": "samples/php7/legacy.php",
+      "line": 25,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP81_NULL_ARGUMENT",
+      "severity": "warning",
+      "message": "null passé à une fonction interne (déprécié)",
+      "recommendation": "Passer une chaîne vide ou tester la valeur avant",
+      "code_snippet": "return strlen(null);"
+    }
+  ]
+}
