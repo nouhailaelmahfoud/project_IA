@@ -7,7 +7,8 @@ from core.plugin_base import LanguagePlugin
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", DeprecationWarning)
-    from lib2to3 import refactor
+    from lib2to3 import pygram, pytree, refactor
+    from lib2to3.pgen2 import driver as pgen_driver
 
 
 # Règles connues : nom de la règle 2to3 -> (gravité, message, recommandation)
@@ -84,6 +85,17 @@ class PythonPlugin(LanguagePlugin):
         fixer_names = refactor.get_fixers_from_package("lib2to3.fixes")
         self.tool = refactor.RefactoringTool(fixer_names)
         self.fixers = self.tool.pre_order + self.tool.post_order
+        # Lecture de secours pour le code où print est une fonction
+        self.fallback_driver = pgen_driver.Driver(
+            pygram.python_grammar_no_print_statement, convert=pytree.convert
+        )
+
+    def _parse(self, source):
+        """Lit le code comme du Python 2, sinon comme du Python 3."""
+        try:
+            return self.tool.driver.parse_string(source)
+        except Exception:
+            return self.fallback_driver.parse_string(source)
 
     def analyze_file(self, file_path: Path) -> list[Issue]:
         file_path = Path(file_path)
@@ -94,7 +106,7 @@ class PythonPlugin(LanguagePlugin):
 
         # Si le fichier est illisible, on le signale au lieu de planter
         try:
-            self.tool.driver.parse_string(source)
+            self._parse(source)
         except Exception as error:
             return [Issue(
                 file_path=str(file_path), line=1, plugin=self.name,
@@ -112,7 +124,7 @@ class PythonPlugin(LanguagePlugin):
                 continue
 
             # Un arbre neuf par règle : les règles ne se perturbent pas
-            fresh_tree = self.tool.driver.parse_string(source)
+            fresh_tree = self._parse(source)
             fresh_tree.future_features = frozenset()
             try:
                 fixer.start_tree(fresh_tree, str(file_path))
