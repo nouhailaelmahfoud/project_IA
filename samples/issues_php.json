@@ -1,0 +1,175 @@
+{
+  "language": "php",
+  "issues": [
+    {
+      "file_path": "samples/php7_corpus/blog/blog.php",
+      "line": 13,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_EREG",
+      "severity": "critical",
+      "message": "Les fonctions ereg sont supprimées",
+      "recommendation": "Utiliser preg_replace()",
+      "code_snippet": "$input = ereg_replace(\"[^a-z ]\", \"\", $input);"
+    },
+    {
+      "file_path": "samples/php7_corpus/blog/blog.php",
+      "line": 18,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_CURLY_BRACE_OFFSET",
+      "severity": "critical",
+      "message": "Accès à un index avec des accolades {} supprimé en PHP 8",
+      "recommendation": "Utiliser des crochets []",
+      "code_snippet": "return $text{strlen($text) - 1};"
+    },
+    {
+      "file_path": "samples/php7_corpus/blog/blog.php",
+      "line": 22,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP81_NULL_ARGUMENT",
+      "severity": "warning",
+      "message": "null passé à une fonction interne (déprécié)",
+      "recommendation": "Passer une chaîne vide ou tester la valeur avant",
+      "code_snippet": "return substr($text, 0, $length) . htmlspecialchars(null);"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 4,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_MYSQL_API",
+      "severity": "critical",
+      "message": "L'extension mysql_* est supprimée",
+      "recommendation": "Utiliser mysqli ou PDO",
+      "code_snippet": "$link = mysql_connect(\"localhost\", \"root\", \"\");"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 5,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_MYSQL_API",
+      "severity": "critical",
+      "message": "L'extension mysql_* est supprimée",
+      "recommendation": "Utiliser mysqli ou PDO",
+      "code_snippet": "mysql_select_db(\"shop\", $link);"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 8,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_MYSQL_API",
+      "severity": "critical",
+      "message": "L'extension mysql_* est supprimée",
+      "recommendation": "Utiliser mysqli ou PDO",
+      "code_snippet": "$res = mysql_query(\"SELECT * FROM users WHERE id = \" . $id);"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 9,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_MYSQL_API",
+      "severity": "critical",
+      "message": "L'extension mysql_* est supprimée",
+      "recommendation": "Utiliser mysqli ou PDO",
+      "code_snippet": "return mysql_fetch_assoc($res);"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 12,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_AUTOLOAD",
+      "severity": "critical",
+      "message": "__autoload() est supprimée en PHP 8",
+      "recommendation": "Utiliser spl_autoload_register()",
+      "code_snippet": "function __autoload($class) {"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 16,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_CREATE_FUNCTION",
+      "severity": "critical",
+      "message": "create_function() est supprimée en PHP 8",
+      "recommendation": "Utiliser une fonction anonyme (closure)",
+      "code_snippet": "$handler = create_function('$x', 'return strtolower($x);');"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 18,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP7_SPLIT",
+      "severity": "critical",
+      "message": "split() est supprimée",
+      "recommendation": "Utiliser explode() ou preg_split()",
+      "code_snippet": "$parts = split(\",\", $_GET['q']);"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 21,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_MAGIC_QUOTES",
+      "severity": "critical",
+      "message": "get_magic_quotes_gpc() est supprimée en PHP 8",
+      "recommendation": "Supprimer l'appel (les magic quotes n'existent plus)",
+      "code_snippet": "if (get_magic_quotes_gpc()) {"
+    },
+    {
+      "file_path": "samples/php7_corpus/legacy_db/db.php",
+      "line": 25,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_REQUIRED_AFTER_OPTIONAL",
+      "severity": "warning",
+      "message": "Paramètre obligatoire placé après un paramètre optionnel",
+      "recommendation": "Réordonner les paramètres ou donner une valeur par défaut",
+      "code_snippet": "function render($user, $title = \"Profil\", $size) {"
+    },
+    {
+      "file_path": "samples/php7_corpus/shop/cart.php",
+      "line": 7,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_OLD_CONSTRUCTOR",
+      "severity": "high",
+      "message": "Constructeur à l'ancienne (méthode du nom de la classe) : ce n'est plus un constructeur en PHP 8",
+      "recommendation": "Renommer la méthode en __construct",
+      "code_snippet": "function Cart() {"
+    },
+    {
+      "file_path": "samples/php7_corpus/shop/cart.php",
+      "line": 11,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_REQUIRED_AFTER_OPTIONAL",
+      "severity": "warning",
+      "message": "Paramètre obligatoire placé après un paramètre optionnel",
+      "recommendation": "Réordonner les paramètres ou donner une valeur par défaut",
+      "code_snippet": "function add($name, $price = 0, $qty) {"
+    },
+    {
+      "file_path": "samples/php7_corpus/shop/cart.php",
+      "line": 17,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_EACH",
+      "severity": "critical",
+      "message": "each() est supprimée en PHP 8",
+      "recommendation": "Utiliser une boucle foreach",
+      "code_snippet": "while (list($name, $item) = each($this->items)) {"
+    },
+    {
+      "file_path": "samples/php7_corpus/shop/cart.php",
+      "line": 24,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_CURLY_BRACE_OFFSET",
+      "severity": "critical",
+      "message": "Accès à un index avec des accolades {} supprimé en PHP 8",
+      "recommendation": "Utiliser des crochets []",
+      "code_snippet": "return strtoupper($name{0}) . substr($name, 1);"
+    },
+    {
+      "file_path": "samples/php7_corpus/shop/cart.php",
+      "line": 41,
+      "plugin": "php_analyzer",
+      "rule_id": "PHP8_MONEY_FORMAT",
+      "severity": "critical",
+      "message": "money_format() est supprimée en PHP 8",
+      "recommendation": "Utiliser NumberFormatter",
+      "code_snippet": "echo money_format('%i', $cart->total());"
+    }
+  ]
+}

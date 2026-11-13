@@ -15,3 +15,5 @@ scratch/
 
 # Dépendances PHP
 vendor/
+.env
+scratch/

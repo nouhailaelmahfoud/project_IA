@@ -1,0 +1,325 @@
+{
+  "language": "python",
+  "issues": [
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 11,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_NUMLITERALS",
+      "severity": "warning",
+      "message": "Construction Python 2 détectée (règle numliterals)",
+      "recommendation": "Voir la documentation de 2to3 pour cette règle",
+      "code_snippet": "def __init__(self, owner, balance=0L):"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 15,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_NONZERO",
+      "severity": "warning",
+      "message": "Construction Python 2 détectée (règle nonzero)",
+      "recommendation": "Voir la documentation de 2to3 pour cette règle",
+      "code_snippet": "def __nonzero__(self):"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 16,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_NE",
+      "severity": "critical",
+      "message": "Opérateur <> supprimé en Python 3",
+      "recommendation": "Remplacer <> par !=",
+      "code_snippet": "return self.balance <> 0"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 22,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_UNICODE",
+      "severity": "high",
+      "message": "Le type unicode n'existe plus en Python 3",
+      "recommendation": "Utiliser str",
+      "code_snippet": "return u\"%s: %d\" % (self.owner, self.balance)"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 26,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_RAISE",
+      "severity": "critical",
+      "message": "Syntaxe raise de Python 2",
+      "recommendation": "Utiliser raise Exception(...)",
+      "code_snippet": "raise InsufficientFunds, \"solde insuffisant\""
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 36,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_EXCEPT",
+      "severity": "critical",
+      "message": "Syntaxe except X, e de Python 2",
+      "recommendation": "Écrire except X as e",
+      "code_snippet": "except InsufficientFunds, e:"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 37,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print >>sys.stderr, \"Erreur :\", e"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 44,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_REPR",
+      "severity": "critical",
+      "message": "Backticks supprimés en Python 3",
+      "recommendation": "Utiliser repr()",
+      "code_snippet": "return `obj`"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 48,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_EXEC",
+      "severity": "critical",
+      "message": "Instruction exec de Python 2",
+      "recommendation": "Utiliser la fonction exec()",
+      "code_snippet": "exec code"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 54,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print transfer(a, b, 300)"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 55,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print a.monthly_interest(), debug(b.balance)"
+    },
+    {
+      "file_path": "samples/py2_corpus/bank/bank.py",
+      "line": 56,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print a > b"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 11,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_HAS_KEY",
+      "severity": "high",
+      "message": "dict.has_key() supprimé en Python 3",
+      "recommendation": "Utiliser l'opérateur in",
+      "code_snippet": "if self.items.has_key(name):"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 18,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_DICT",
+      "severity": "warning",
+      "message": "dict.keys()/values()/items() renvoient des vues",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "for name, data in self.items.iteritems():"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 23,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_DICT",
+      "severity": "warning",
+      "message": "dict.keys()/values()/items() renvoient des vues",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "prices = [d[\"price\"] for d in self.items.values()]"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 27,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_DICT",
+      "severity": "warning",
+      "message": "dict.keys()/values()/items() renvoient des vues",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "names = self.items.keys()"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 37,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print \"Valeur totale :\", inv.total_value()"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 38,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print \"Prix moyen   :\", inv.average_price()"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 39,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print \"Articles     :\", inv.names_sorted()"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 41,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_RAW_INPUT",
+      "severity": "high",
+      "message": "raw_input n'existe plus en Python 3",
+      "recommendation": "Utiliser input()",
+      "code_snippet": "name = raw_input(\"Article ? \")"
+    },
+    {
+      "file_path": "samples/py2_corpus/inventory/inventory.py",
+      "line": 42,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print name"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 5,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_IMPORTS",
+      "severity": "warning",
+      "message": "Module renommé en Python 3",
+      "recommendation": "Utiliser le nouveau nom du module",
+      "code_snippet": "import cPickle"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 6,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_IMPORTS",
+      "severity": "warning",
+      "message": "Module renommé en Python 3",
+      "recommendation": "Utiliser le nouveau nom du module",
+      "code_snippet": "from StringIO import StringIO"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 21,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_DICT",
+      "severity": "warning",
+      "message": "dict.keys()/values()/items() renvoient des vues",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "pairs = counts.items()"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 28,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_MAP",
+      "severity": "warning",
+      "message": "map() renvoie un itérateur en Python 3",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "lengths = map(len, words)"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 33,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_FILTER",
+      "severity": "warning",
+      "message": "filter() renvoie un itérateur en Python 3",
+      "recommendation": "Entourer de list() si une liste est nécessaire",
+      "code_snippet": "return len(filter(lambda w: len(w) > 5, text.split()))"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 37,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_UNICODE",
+      "severity": "high",
+      "message": "Le type unicode n'existe plus en Python 3",
+      "recommendation": "Utiliser str",
+      "code_snippet": "return unicode(raw, \"utf-8\")"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 42,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_IMPORTS",
+      "severity": "warning",
+      "message": "Module renommé en Python 3",
+      "recommendation": "Utiliser le nouveau nom du module",
+      "code_snippet": "cPickle.dump(counts, f)"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 49,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print top_words(counts, 2)"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 50,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print longest_word(text), count_long(text)"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 51,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_RENAMES",
+      "severity": "warning",
+      "message": "Construction Python 2 détectée (règle renames)",
+      "recommendation": "Voir la documentation de 2to3 pour cette règle",
+      "code_snippet": "print sys.maxint"
+    },
+    {
+      "file_path": "samples/py2_corpus/textstats/textstats.py",
+      "line": 51,
+      "plugin": "python_analyzer",
+      "rule_id": "PY2_PRINT",
+      "severity": "critical",
+      "message": "Instruction print de Python 2",
+      "recommendation": "Utiliser la fonction print()",
+      "code_snippet": "print sys.maxint"
+    }
+  ]
+}
