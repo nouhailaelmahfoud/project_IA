@@ -4,7 +4,7 @@ from pathlib import Path
 from langgraph.graph import END, START, StateGraph
 
 from agents.languages import LANGUAGES
-from agents.llm_utils import ask_llm, extract_code_block, extract_json
+from agents.llm_utils import ask_llm, extract_json, parse_migration, save_debug
 from agents.prompt_loader import load_prompt
 from agents.schemas import AnalysisOutput, MigrationOutput, ReviewOutput
 from agents.state import MigrationState
@@ -46,18 +46,23 @@ def build_graph(llm, language: str):
         prompt = load_prompt(
             prompt_dir, "analyzer", code=state["current_code"], static_issues=static
         )
-        text, tokens_in, tokens_out = ask_llm(llm, prompt)
+        text, tokens_in, tokens_out = ask_llm(llm, prompt, "analyseur")
 
         try:
             risks = [r.model_dump() for r in AnalysisOutput(**extract_json(text)).risks]
             message = f"analyseur : {len(risks)} risque(s) repéré(s)"
+            details = [
+                f"  risque ligne {r.get('line') or '?'} : {r['description'][:90]}"
+                for r in risks
+            ]
         except Exception as error:
-            risks = []
-            message = f"analyseur : réponse illisible ({error})"
+            risks, details = [], []
+            raw = save_debug(state["file_path"], "analyzer", 0, text)
+            message = f"analyseur : réponse illisible (brute : {raw})"
 
         return {
             "risks": risks,
-            "log": state["log"] + [message],
+            "log": state["log"] + [message] + details,
             **counters(state, tokens_in, tokens_out),
         }
 
@@ -81,14 +86,10 @@ def build_graph(llm, language: str):
             prompt_dir, "migrator",
             code=state["current_code"], risks=risks_text, feedback=feedback,
         )
-        text, tokens_in, tokens_out = ask_llm(llm, prompt)
+        text, tokens_in, tokens_out = ask_llm(
+            llm, prompt, f"migrateur (tour {state['iteration'] + 1})")
 
-        new_code, changes = None, []
-        try:
-            output = MigrationOutput(**extract_json(text))
-            new_code, changes = output.code, output.changes
-        except Exception:
-            new_code = extract_code_block(text)  # plan B
+        new_code, changes = parse_migration(text)
 
         update = {
             "iteration": state["iteration"] + 1,
@@ -102,9 +103,13 @@ def build_graph(llm, language: str):
                 f"migrateur (tour {update['iteration']}) : {len(changes)} changement(s)"
             ]
         else:
-            update["errors"] = ["Réponse du Migrateur illisible : renvoie le fichier complet en JSON"]
+            raw = save_debug(state["file_path"], "migrator", update["iteration"], text)
+            update["errors"] = [
+                "Réponse du Migrateur illisible : renvoie le fichier complet "
+                "entre les balises <code> et </code>"
+            ]
             update["log"] = state["log"] + [
-                f"migrateur (tour {update['iteration']}) : réponse illisible"
+                f"migrateur (tour {update['iteration']}) : réponse illisible (brute : {raw})"
             ]
         return update
 
@@ -120,7 +125,7 @@ def build_graph(llm, language: str):
             prompt_dir, "reviewer",
             original=state["original_code"], migrated=state["current_code"],
         )
-        text, tokens_in, tokens_out = ask_llm(llm, prompt)
+        text, tokens_in, tokens_out = ask_llm(llm, prompt, "reviewer")
 
         try:
             output = ReviewOutput(**extract_json(text))
@@ -128,7 +133,8 @@ def build_graph(llm, language: str):
             message = "reviewer : approuvé" if approved else f"reviewer : {len(problems)} problème(s)"
         except Exception as error:
             approved, problems = True, []
-            message = f"reviewer : réponse illisible, non vérifié ({error})"
+            raw = save_debug(state["file_path"], "reviewer", state["iteration"], text)
+            message = f"reviewer : réponse illisible, non vérifié (brute : {raw})"
 
         return {
             "approved": approved,

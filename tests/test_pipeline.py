@@ -32,6 +32,11 @@ REJECTED = json.dumps({"approved": False, "problems": ["la division a changé"]}
 
 
 def migration(code):
+    """Réponse du Migrateur au format demandé : balises <changes> et <code>."""
+    return "<changes>\n- division entière\n</changes>\n<code>\n" + code + "</code>"
+
+
+def migration_json(code):
     return json.dumps({"code": code, "changes": ["division entière"]})
 
 
@@ -103,3 +108,27 @@ def test_llm_only_migre_sans_les_regles(tmp_path):
     state = run_pipeline(write_source(tmp_path), "python", "llm_only", llm)
     assert state["llm_calls"] == 3
     assert "règles : ignorées" in " ".join(state["log"])
+
+
+def test_migrateur_accepte_aussi_le_json(tmp_path):
+    llm = FakeLLM([RISK, migration_json(FIXED), APPROVED])
+    state = run_pipeline(write_source(tmp_path), "python", "hybrid", llm)
+    assert "// 2" in state["current_code"]
+
+
+def test_balises_avec_apostrophes_inversees_a_l_interieur(tmp_path):
+    fence = "`" * 3
+    reponse = "<code>\n" + fence + "python\n" + FIXED + fence + "\n</code>"
+    llm = FakeLLM([RISK, reponse, APPROVED])
+    state = run_pipeline(write_source(tmp_path), "python", "hybrid", llm)
+    assert "// 2" in state["current_code"]
+    assert fence not in state["current_code"]
+
+
+def test_reponse_tronquee_est_illisible_et_sauvegardee(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    tronquee = "<code>\ndef avg(a, b):\n    return (a + b)"  # pas de </code>
+    llm = FakeLLM([RISK, tronquee, tronquee, tronquee])
+    state = run_pipeline(write_source(tmp_path), "python", "hybrid", llm)
+    assert state["errors"]
+    assert (tmp_path / "output" / "debug" / "avg_migrator_1.txt").exists()

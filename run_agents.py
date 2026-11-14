@@ -10,6 +10,7 @@ import difflib
 import time
 from pathlib import Path
 
+from agents import llm_utils
 from agents.graph import run_pipeline
 from agents.llm import get_llm
 
@@ -26,6 +27,9 @@ def main():
     parser.add_argument("--max-iterations", type=int, default=3)
     args = parser.parse_args()
 
+    llm_utils.VERBOSE = True
+    print(f"Migration de {args.file} (mode {args.mode}, moteur {args.provider})...",
+          flush=True)
     llm = None if args.mode == "rules_only" else get_llm(args.provider, args.model)
 
     issues = []

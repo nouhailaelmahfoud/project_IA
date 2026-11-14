@@ -16,5 +16,12 @@ Risques à corriger :
 {code}
 </code>
 
-Réponds UNIQUEMENT avec du JSON, sans aucun texte autour, dans ce format :
-{"code": "le fichier complet corrigé", "changes": ["premier changement", "deuxième changement"]}
+Réponds avec EXACTEMENT ce format, sans rien écrire avant ni après :
+
+<changes>
+- premier changement
+- deuxième changement
+</changes>
+<code>
+le fichier complet corrigé, tel quel, sans apostrophes inversées autour
+</code>
