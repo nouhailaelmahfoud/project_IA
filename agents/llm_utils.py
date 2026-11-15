@@ -6,6 +6,9 @@ from pathlib import Path
 
 VERBOSE = False  # si True, affiche l'avancement pendant les appels
 
+# Raison de fin de la dernière réponse (aide à comprendre une coupure)
+LAST_FINISH = {"reason": None}
+
 FENCE = "`" * 3  # les trois apostrophes inversées qui entourent un bloc de code
 
 
@@ -28,11 +31,16 @@ def ask_llm(llm, prompt: str, label: str = "modèle"):
     # Certains modèles écrivent leur réflexion entre balises <think>
     content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
     usage = getattr(response, "usage_metadata", None) or {}
+    meta = getattr(response, "response_metadata", None) or {}
+    LAST_FINISH["reason"] = meta.get("done_reason") or meta.get("finish_reason")
     return content, usage.get("input_tokens", 0), usage.get("output_tokens", 0)
 
 
-def extract_json(text: str) -> dict:
-    """Trouve un objet JSON dans la réponse, même entouré de texte."""
+def extract_json(text: str, repair: bool = False) -> dict:
+    """Trouve un objet JSON dans la réponse, même entouré de texte.
+
+    Avec repair=True, tente aussi de réparer un JSON coupé en route.
+    """
     text = text.strip()
     candidates = [text]
 
@@ -51,6 +59,10 @@ def extract_json(text: str) -> dict:
             continue
         if isinstance(data, dict):
             return data
+    if repair:
+        data = repair_truncated_json(text)
+        if data is not None:
+            return data
     raise ValueError("Aucun JSON valide dans la réponse du modèle")
 
 
@@ -58,6 +70,44 @@ def extract_code_block(text: str):
     """Plan B : récupère le premier bloc de code entouré de trois apostrophes inversées."""
     match = re.search(FENCE + r"[a-zA-Z0-9]*\n(.*?)" + FENCE, text, re.DOTALL)
     return match.group(1) if match else None
+
+
+def repair_truncated_json(text: str):
+    """Ferme les guillemets et accolades d'un JSON coupé ; None si impossible."""
+    start = text.find("{")
+    if start == -1:
+        return None
+    body = text[start:]
+
+    # On essaie le texte entier, puis en reculant jusqu'à une virgule ou fermeture
+    cut_points = [len(body)] + [
+        i for i in range(len(body) - 1, 0, -1) if body[i] in ",}]"
+    ]
+    for cut in cut_points[:25]:
+        candidate = body[:cut]
+        closers, in_string, escaped = [], False, False
+        for char in candidate:
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+            elif char == '"':
+                in_string = True
+            elif char in "{[":
+                closers.append("}" if char == "{" else "]")
+            elif char in "}]" and closers:
+                closers.pop()
+        repaired = candidate + ('"' if in_string else "") + "".join(reversed(closers))
+        try:
+            data = json.loads(repaired, strict=False)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict):
+            return data
+    return None
 
 
 def extract_tagged(text: str, tag: str):
@@ -107,5 +157,9 @@ def save_debug(file_path, step: str, iteration: int, text: str) -> str:
     folder = Path("output") / "debug"
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"{Path(file_path).stem}_{step}_{iteration}.txt"
-    path.write_text(text, encoding="utf-8")
+    reason = LAST_FINISH.get("reason")
+    path.write_text(
+        f"{text}\n\n[raison de fin de génération : {reason}]\n",
+        encoding="utf-8",
+    )
     return str(path)

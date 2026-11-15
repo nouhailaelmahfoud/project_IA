@@ -25,6 +25,6 @@ def get_llm(provider: str = "openrouter", model: str = None,
             model=model or os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:3b"),
             temperature=temperature,
             num_ctx=8192,      # taille de lecture : le fichier ne doit pas être coupé
-            num_predict=4096,  # longueur maximale de la réponse
+            num_predict=1500,  # réponses courtes : on ne demande que des modifications ciblées
         )
     raise ValueError(f"Moteur inconnu : {provider} (openrouter ou ollama)")

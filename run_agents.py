@@ -25,6 +25,10 @@ def main():
                         choices=["openrouter", "ollama"])
     parser.add_argument("--model", default=None)
     parser.add_argument("--max-iterations", type=int, default=3)
+    parser.add_argument("--llm-analyzer", action="store_true",
+                        help="le LLM analyse aussi le code (en plus des détecteurs)")
+    parser.add_argument("--no-detectors", action="store_true",
+                        help="désactive les détecteurs fixes (pour le comparatif)")
     args = parser.parse_args()
 
     llm_utils.VERBOSE = True
@@ -39,7 +43,9 @@ def main():
 
     start = time.time()
     state = run_pipeline(args.file, args.language, args.mode, llm,
-                         issues=issues, max_iterations=args.max_iterations)
+                         issues=issues, max_iterations=args.max_iterations,
+                         llm_analyzer=args.llm_analyzer,
+                         use_detectors=not args.no_detectors)
     elapsed = time.time() - start
 
     output = Path("output") / args.mode / Path(args.file).name
@@ -63,6 +69,9 @@ def main():
     print(f"  tokens (entrée/sortie) : {state['tokens_in']} / {state['tokens_out']}")
     print(f"  tours du Migrateur : {state['iteration']}")
     print(f"  validation         : {'OK' if not state['errors'] else state['errors']}")
+    if state["rolled_back"]:
+        print("  ATTENTION          : modifications du modèle rejetées, "
+              "code d'avant le Migrateur conservé")
     print(f"  durée              : {elapsed:.1f} s")
     print(f"  fichier migré      : {output}")
 

@@ -4,9 +4,13 @@ from typing import TypedDict
 class MigrationState(TypedDict):
     language: str          # "python" (bientôt "php")
     mode: str              # "hybrid", "rules_only" ou "llm_only"
+    llm_analyzer: bool     # le LLM analyse aussi (en plus des détecteurs)
+    use_detectors: bool    # les détecteurs fixes sont-ils utilisés ?
     file_path: str
     original_code: str     # le code d'origine, jamais modifié
     current_code: str      # le code en cours de migration
+    rules_code: str        # le code après les règles (version sûre)
+    rolled_back: bool      # True si les modifications du modèle ont été écartées
     issues: list           # problèmes détectés par la Tâche 1
     risks: list            # risques repérés par l'Analyseur
     errors: list           # erreurs de validation

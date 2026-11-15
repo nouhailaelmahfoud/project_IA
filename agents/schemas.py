@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class Risk(BaseModel):
     line: Optional[Union[int, str]] = None
+    code: str = ""  # la ligne de code concernée, recopiée par le modèle
     description: str
     suggestion: str = ""
 
