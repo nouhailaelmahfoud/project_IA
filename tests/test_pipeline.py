@@ -355,3 +355,61 @@ def test_avertissement_si_la_reponse_est_coupee(capsys, monkeypatch):
     monkeypatch.setattr(llm_utils, "VERBOSE", True)
     llm_utils.ask_llm(FauxModele(), "x", "test")
     assert "réponse coupée" in capsys.readouterr().out
+
+
+def test_nouvel_essai_apres_une_erreur_429(capsys, monkeypatch):
+    from agents import llm_utils
+
+    attentes = []
+    monkeypatch.setattr(llm_utils.time, "sleep", attentes.append)
+    monkeypatch.setattr(llm_utils, "VERBOSE", True)
+
+    class Reponse:
+        content = "ok"
+        usage_metadata = {}
+
+    class Capricieux:
+        def __init__(self):
+            self.appels = 0
+
+        def invoke(self, prompt):
+            self.appels += 1
+            if self.appels < 3:
+                raise RuntimeError("Error code: 429 - Provider returned error")
+            return Reponse()
+
+    modele = Capricieux()
+    texte, _, _ = llm_utils.ask_llm(modele, "x", "test")
+    assert texte == "ok" and modele.appels == 3
+    assert attentes == [30, 60]
+    assert "nouvel essai" in capsys.readouterr().out
+
+
+def test_429_persistant_donne_un_message_clair(monkeypatch):
+    import pytest
+    from agents import llm_utils
+
+    monkeypatch.setattr(llm_utils.time, "sleep", lambda secondes: None)
+
+    class Sature:
+        def invoke(self, prompt):
+            raise RuntimeError("Error code: 429 - Provider returned error")
+
+    with pytest.raises(RuntimeError, match="Réessaie plus tard"):
+        llm_utils.ask_llm(Sature(), "x", "test")
+
+
+def test_erreur_autre_que_429_n_est_pas_retentee(monkeypatch):
+    import pytest
+    from agents import llm_utils
+
+    attentes = []
+    monkeypatch.setattr(llm_utils.time, "sleep", attentes.append)
+
+    class Casse:
+        def invoke(self, prompt):
+            raise RuntimeError("Error code: 401 - clé invalide")
+
+    with pytest.raises(RuntimeError, match="401"):
+        llm_utils.ask_llm(Casse(), "x", "test")
+    assert attentes == []

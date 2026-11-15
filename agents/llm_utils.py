@@ -12,13 +12,38 @@ LAST_FINISH = {"reason": None}
 FENCE = "`" * 3  # les trois apostrophes inversées qui entourent un bloc de code
 
 
+RETRY_WAITS = (30, 60)  # secondes d'attente avant chaque nouvel essai
+
+
+def _is_rate_limit(error) -> bool:
+    """Le fournisseur dit « trop de demandes » (erreur 429) ?"""
+    return "429" in str(error) or "RateLimit" in type(error).__name__
+
+
 def ask_llm(llm, prompt: str, label: str = "modèle"):
     """Envoie le prompt. Renvoie (texte, tokens_entrée, tokens_sortie)."""
     if VERBOSE:
         print(f"  ... {label} : appel en cours (plusieurs minutes possibles "
               f"sur un petit PC)", flush=True)
     start = time.time()
-    response = llm.invoke(prompt)
+    for attempt in range(len(RETRY_WAITS) + 1):
+        try:
+            response = llm.invoke(prompt)
+            break
+        except Exception as error:
+            if not _is_rate_limit(error):
+                raise
+            if attempt == len(RETRY_WAITS):
+                raise RuntimeError(
+                    "Limite de débit du fournisseur (429) toujours atteinte après "
+                    f"{attempt + 1} essais. Réessaie plus tard ou change de modèle "
+                    "(option --model)."
+                ) from error
+            wait = RETRY_WAITS[attempt]
+            if VERBOSE:
+                print(f"  ... {label} : limite de débit du fournisseur (429), "
+                      f"nouvel essai dans {wait} s", flush=True)
+            time.sleep(wait)
     if VERBOSE:
         print(f"  ... {label} : réponse reçue en {time.time() - start:.0f} s",
               flush=True)
