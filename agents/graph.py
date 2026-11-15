@@ -216,7 +216,8 @@ def build_graph(llm, language: str):
         return {
             "approved": approved,
             "review_problems": problems,
-            "log": state["log"] + [message],
+            "log": state["log"] + [message]
+            + [f"  problème signalé : {p[:200]}" for p in problems],
             **counters(state, tokens_in, tokens_out),
         }
 

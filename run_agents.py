@@ -72,6 +72,9 @@ def main():
     if state["rolled_back"]:
         print("  ATTENTION          : modifications du modèle rejetées, "
               "code d'avant le Migrateur conservé")
+    if any("non vérifié" in line for line in state["log"]):
+        print("  ATTENTION          : relecture du Reviewer illisible, code validé "
+              "seulement par les contrôles fixes (à relire)")
     print(f"  durée              : {elapsed:.1f} s")
     print(f"  fichier migré      : {output}")
 

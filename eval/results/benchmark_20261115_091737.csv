@@ -1,0 +1,5 @@
+fichier,mode,syntaxe,s_execute,resultat_attendu,pieges_bloquants,retour_arriere,non_verifie,appels,tokens_entree,tokens_sortie,duree_s,erreur
+bank,hybrid,True,False,False,3,True,False,2,1688,8191,48.7,
+bank,llm_only,False,False,False,0,True,False,3,2365,11576,91.9,
+inventory,hybrid,True,True,True,0,False,False,2,1327,2271,10.7,
+inventory,llm_only,False,False,False,0,True,False,4,2853,6238,43.3,

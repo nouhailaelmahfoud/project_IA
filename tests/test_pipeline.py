@@ -330,3 +330,11 @@ def test_detecteurs_cas_particuliers():
             "items.sort(lambda a, b: cmp(a, b))\n")
     kinds = {r["kind"] for r in detect_python_risks(code)}
     assert {"file", "string:lower", "sort-cmp", "cmp"} <= kinds
+
+
+def test_les_problemes_du_reviewer_sont_dans_le_journal(tmp_path):
+    llm = FakeLLM([RISK, edit(LIGNE, LIGNE_CORRIGEE), REJECTED])
+    state = run_pipeline(write_source(tmp_path), "python", "hybrid", llm,
+                         max_iterations=1)
+    assert "problème signalé : la division a changé" in " ".join(state["log"])
+    assert state["rolled_back"] is True

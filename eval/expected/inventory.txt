@@ -1,0 +1,3 @@
+Valeur totale : 390
+Prix moyen   : 2
+Articles     : ['ecrou', 'vis']
