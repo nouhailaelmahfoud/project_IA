@@ -33,6 +33,9 @@ def ask_llm(llm, prompt: str, label: str = "modèle"):
     usage = getattr(response, "usage_metadata", None) or {}
     meta = getattr(response, "response_metadata", None) or {}
     LAST_FINISH["reason"] = meta.get("done_reason") or meta.get("finish_reason")
+    if VERBOSE and LAST_FINISH["reason"] == "length":
+        print("  ... ATTENTION : réponse coupée par la limite de longueur "
+              "(le modèle « réfléchit » trop ?)", flush=True)
     return content, usage.get("input_tokens", 0), usage.get("output_tokens", 0)
 
 

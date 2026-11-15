@@ -338,3 +338,20 @@ def test_les_problemes_du_reviewer_sont_dans_le_journal(tmp_path):
                          max_iterations=1)
     assert "problème signalé : la division a changé" in " ".join(state["log"])
     assert state["rolled_back"] is True
+
+
+def test_avertissement_si_la_reponse_est_coupee(capsys, monkeypatch):
+    from agents import llm_utils
+
+    class Coupee:
+        content = "{"
+        usage_metadata = {}
+        response_metadata = {"finish_reason": "length"}
+
+    class FauxModele:
+        def invoke(self, prompt):
+            return Coupee()
+
+    monkeypatch.setattr(llm_utils, "VERBOSE", True)
+    llm_utils.ask_llm(FauxModele(), "x", "test")
+    assert "réponse coupée" in capsys.readouterr().out
