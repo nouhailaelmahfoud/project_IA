@@ -9,4 +9,7 @@ def validate_code(language: str, code: str) -> list:
             ast.parse(code)
         except SyntaxError as error:
             return [f"Erreur de syntaxe Python 3, ligne {error.lineno} : {error.msg}"]
+    elif language == "php":
+        from agents.php_support import validate_php
+        return validate_php(code)
     return []

@@ -1,0 +1,6 @@
+{
+    "description": "Rector : règles automatiques de migration PHP (Smart Migrator)",
+    "require-dev": {
+        "rector/rector": "^2.0"
+    }
+}

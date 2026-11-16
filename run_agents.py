@@ -17,7 +17,7 @@ from agents.llm import get_llm
 
 def main():
     parser = argparse.ArgumentParser(description="Migration de code legacy")
-    parser.add_argument("language", choices=["python"])
+    parser.add_argument("language", choices=["python", "php"])
     parser.add_argument("file")
     parser.add_argument("--mode", default="hybrid",
                         choices=["hybrid", "rules_only", "llm_only"])
@@ -38,8 +38,11 @@ def main():
 
     issues = []
     if args.mode == "llm_only":
-        from plugins.python_analyzer.python_plugin import PythonPlugin
-        issues = [i.to_dict() for i in PythonPlugin().analyze_file(Path(args.file))]
+        if args.language == "php":
+            from plugins.php_analyzer.php_plugin import PhpPlugin as Plugin
+        else:
+            from plugins.python_analyzer.python_plugin import PythonPlugin as Plugin
+        issues = [i.to_dict() for i in Plugin().analyze_file(Path(args.file))]
 
     start = time.time()
     state = run_pipeline(args.file, args.language, args.mode, llm,
