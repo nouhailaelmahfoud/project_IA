@@ -1,0 +1,13 @@
+langage,fichier,mode,syntaxe,s_execute,resultat_attendu,pieges_bloquants,retour_arriere,non_verifie,appels,tokens_entree,tokens_sortie,duree_s,erreur
+php,shop,rules_only,True,,,1,False,False,0,0,0,1.9,
+php,shop,llm_only,False,,,4,True,False,3,2604,166,130.6,
+php,shop,hybrid-sans-detecteurs,True,,,1,False,False,3,2812,140,126.0,
+php,shop,hybrid,True,,,0,False,False,2,1911,91,51.5,
+php,blog,rules_only,False,False,False,0,False,False,0,0,0,1.5,
+php,blog,llm_only,True,True,True,0,False,False,5,3892,875,194.9,
+php,blog,hybrid-sans-detecteurs,True,True,True,0,False,False,4,3000,285,93.6,
+php,blog,hybrid,True,True,True,0,False,False,3,2211,365,83.5,
+php,legacy_db,rules_only,False,,,6,False,False,0,0,0,1.6,
+php,legacy_db,llm_only,True,,,1,False,False,4,4029,1175,265.5,
+php,legacy_db,hybrid-sans-detecteurs,False,,,6,True,False,4,3657,1499,34113.4,
+php,legacy_db,hybrid,False,,,6,True,False,2,1927,564,188.2,

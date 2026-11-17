@@ -1,0 +1,4 @@
+langage,fichier,mode,syntaxe,s_execute,resultat_attendu,pieges_bloquants,retour_arriere,non_verifie,appels,tokens_entree,tokens_sortie,duree_s,erreur
+php,shop,rules_only,True,,,1,False,False,0,0,0,2.0,
+php,blog,rules_only,False,False,False,0,False,False,0,0,0,4.7,
+php,legacy_db,rules_only,False,,,6,False,False,0,0,0,1.7,
