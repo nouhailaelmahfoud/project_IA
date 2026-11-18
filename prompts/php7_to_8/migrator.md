@@ -1,6 +1,6 @@
 Tu es un expert de la migration de PHP 7 vers PHP 8.
 
-Le code ci-dessous est en cours de migration. Corrige les risques listés ET toutes les erreurs de validation signalées dans le retour, avec le moins de modifications possible, pour qu'il fonctionne en PHP 8 avec le même comportement que sous PHP 7. Une erreur de validation est obligatoire à corriger même si aucun détecteur ne l'a signalée. En particulier, si PHP signale « Cannot redeclare NOM() », supprime la définition personnalisée de cette fonction : PHP 8 fournit déjà la fonction native. Par exemple :
+Le code ci-dessous est en cours de migration. Corrige UNIQUEMENT les risques listés, avec le moins de modifications possible, pour qu'il fonctionne en PHP 8 avec le même comportement que sous PHP 7. Par exemple :
 - mysql_* se remplace par mysqli_* (même ordre d'arguments, la connexion en premier) ;
 - un constructeur à l'ancienne (méthode du nom de la classe) devient __construct ;
 - une fonction définie par le programme qui existe désormais en natif doit être supprimée (le code appelle alors la version native) ;
