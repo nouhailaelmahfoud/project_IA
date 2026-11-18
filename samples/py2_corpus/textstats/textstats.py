@@ -46,7 +46,7 @@ def save(counts, path):
 def main():
     text = "le chat et le chien et le chat"
     counts = word_counts(text)
-    print top_words(counts, 2)
+    print top_words(counts, 1)
     print longest_word(text), count_long(text)
     print sys.maxint
 

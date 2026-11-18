@@ -1,5 +1,4 @@
 """Le pipeline d'agents : Règles -> Analyseur -> Migrateur -> Validation -> Reviewer."""
-import re
 from pathlib import Path
 
 from langgraph.graph import END, START, StateGraph
@@ -8,7 +7,6 @@ from agents.languages import LANGUAGES
 from agents.edits import apply_edits, number_lines, parse_edits, verify_risks
 from agents.llm_utils import ask_llm, extract_json, parse_migration, save_debug
 from agents.prompt_loader import load_prompt
-from agents.php_support import remove_redeclared_php_function
 from agents.schemas import AnalysisOutput, MigrationOutput, ReviewOutput
 from agents.state import MigrationState
 from agents.validation import validate_code
@@ -132,19 +130,6 @@ def build_graph(llm, language: str):
             f"- aucun risque précis : corrige tout ce qui empêche l'exécution en {config.get('target', 'Python 3')}"
         )
 
-        # Les détecteurs PHP ne connaissent pas toutes les fonctions natives.
-        # Remonter les redéfinitions fatales comme un risque ciblé au Migrateur.
-        if language == "php":
-            redeclarations = [
-                error for error in state["errors"]
-                if "Cannot redeclare " in error
-            ]
-            if redeclarations:
-                risks_text += "\n" + "\n".join(
-                    f"- erreur fatale de validation : {error}. Supprime la définition personnalisée de cette fonction ; PHP 8 fournit la fonction native."
-                    for error in redeclarations
-                )
-
         problems = state["errors"] + state["review_problems"]
         feedback = ""
         if problems:
@@ -172,18 +157,6 @@ def build_graph(llm, language: str):
             # Plan B : le modèle a renvoyé le fichier complet
             new_code, changes = parse_migration(text)
 
-        fallback_notes = []
-        if language == "php" and state["errors"]:
-            candidate = new_code or state["current_code"]
-            for error in state["errors"]:
-                candidate, removed_name = remove_redeclared_php_function(candidate, error)
-                if removed_name:
-                    new_code = candidate
-                    changes.append(f"suppression de la redéfinition PHP de {removed_name}")
-                    fallback_notes.append(
-                        f"  correction de repli : définition de {removed_name} supprimée après l'erreur de validation"
-                    )
-
         update = {
             "iteration": state["iteration"] + 1,
             "errors": [],
@@ -195,7 +168,7 @@ def build_graph(llm, language: str):
             update["errors"] = edit_problems  # modifications ratées : à refaire
             update["log"] = state["log"] + [
                 f"migrateur (tour {update['iteration']}) : {len(changes)} changement(s)"
-            ] + fallback_notes + [f"  non appliqué : {p}" for p in edit_problems]
+            ] + [f"  non appliqué : {p}" for p in edit_problems]
         else:
             raw = save_debug(state["file_path"], "migrator", update["iteration"], text)
             update["errors"] = edit_problems or [
@@ -233,29 +206,8 @@ def build_graph(llm, language: str):
 
         try:
             output = ReviewOutput(**extract_json(text, repair=True))
-            problems = output.problems
-            ignored = []
-            if language == "php":
-                active_str_contains = re.search(
-                    r"(?im)^\s*function\s+&?\s*str_contains\s*\(",
-                    state["current_code"],
-                )
-                code_without_line_comments = re.sub(
-                    r"(?m)^\s*//.*$", "", state["current_code"])
-                uses_str_contains = re.search(
-                    r"\bstr_contains\s*\(", code_without_line_comments)
-                if not active_str_contains and not uses_str_contains:
-                    kept = []
-                    for problem in problems:
-                        if "str_contains" in problem.lower():
-                            ignored.append(problem)
-                        else:
-                            kept.append(problem)
-                    problems = kept
-            approved = (not problems) if ignored else (output.approved and not problems)
+            approved, problems = output.approved, output.problems
             message = "reviewer : approuvé" if approved else f"reviewer : {len(problems)} problème(s)"
-            if ignored:
-                message += f" ({len(ignored)} fausse alerte(s) ignorée(s))"
         except Exception as error:
             approved, problems = True, []
             raw = save_debug(state["file_path"], "reviewer", state["iteration"], text)

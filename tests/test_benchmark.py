@@ -1,4 +1,9 @@
 """Le comparatif sans modèle : les règles seules, sur le vrai corpus."""
+from pathlib import Path
+
+import pytest
+
+from agents import php_support
 from eval.run_benchmark import run_benchmark
 
 
@@ -17,18 +22,16 @@ def test_regles_seules_sur_le_corpus():
 
 
 def test_regles_seules_sur_le_corpus_php():
-    from pathlib import Path
-
-    import pytest
     if not Path("plugins/php_analyzer/vendor/autoload.php").exists():
         pytest.skip("composer install non fait dans plugins/php_analyzer")
 
     rows = {r["fichier"]: r for r in run_benchmark(
         ["blog", "legacy_db"], ["rules_only"], language="php")}
-    # blog : la fonction str_contains du programme existe en natif -> erreur de compilation
-    assert rows["blog"]["syntaxe"] is False
-    assert rows["blog"]["resultat_attendu"] is False
-    # legacy_db : __autoload() est supprimée -> erreur de compilation
+    # legacy_db : __autoload() est supprimée -> erreur de compilation, base de données requise
     assert rows["legacy_db"]["syntaxe"] is False
-    assert rows["legacy_db"]["s_execute"] is None      # pas exécutable (base de données)
+    assert rows["legacy_db"]["s_execute"] is None
     assert all(r["appels"] == 0 for r in rows.values())
+    # blog : avec Rector, les règles (dont « fonction déjà native ») suffisent
+    if php_support.RECTOR.exists():
+        assert rows["blog"]["syntaxe"] is True
+        assert rows["blog"]["resultat_attendu"] is True

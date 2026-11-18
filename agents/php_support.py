@@ -13,62 +13,19 @@ RECTOR = Path(os.environ.get(
 RECTOR_CONFIG = ROOT / "tools" / "rector" / "rector.php"
 
 
-def remove_redeclared_php_function(code: str, error: str):
-    """Retire une définition globale dont PHP signale la redéclaration.
-
-    Renvoie le code inchangé et None si le diagnostic ou la fonction est absent.
-    """
-    match = re.search(r"Cannot redeclare\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", error)
-    if not match:
-        return code, None
-
-    name = match.group(1)
-    declaration = re.search(
-        rf"\bfunction\s*&?\s*{re.escape(name)}\s*\(", code, re.IGNORECASE)
-    if not declaration:
-        return code, None
-
-    # Find the end of the parameter list while respecting quoted defaults.
-    opening_paren = code.find("(", declaration.start(), declaration.end())
-    depth, quote, escaped = 0, None, False
-    close_paren = None
-    for index in range(opening_paren, len(code)):
-        char = code[index]
-        if quote:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == quote:
-                quote = None
-            continue
-        if char in ("'", '"', "`"):
-            quote = char
-        elif char == "(":
-            depth += 1
-        elif char == ")":
-            depth -= 1
-            if depth == 0:
-                close_paren = index
-                break
-    if close_paren is None:
-        return code, None
-
-    body_start = code.find("{", close_paren)
-    if body_start < 0:
-        return code, None
-
-    # Match the body braces, ignoring quoted strings and PHP comments.
-    depth, quote, escaped, line_comment, block_comment = 1, None, False, False, False
+def _matching_end(code: str, body_start: int):
+    """Position juste après l'accolade fermante qui correspond à celle de body_start."""
+    depth, quote, escaped = 1, None, False
+    line_comment = block_comment = False
     index = body_start + 1
     while index < len(code):
         char = code[index]
-        next_char = code[index + 1] if index + 1 < len(code) else ""
+        following = code[index + 1] if index + 1 < len(code) else ""
         if line_comment:
             if char == "\n":
                 line_comment = False
         elif block_comment:
-            if char == "*" and next_char == "/":
+            if char == "*" and following == "/":
                 block_comment = False
                 index += 1
         elif quote:
@@ -78,13 +35,11 @@ def remove_redeclared_php_function(code: str, error: str):
                 escaped = True
             elif char == quote:
                 quote = None
-        elif char in ("'", '"', "`"):
+        elif char in ("'", '"'):
             quote = char
-        elif char == "/" and next_char == "/" or char == "#":
+        elif char == "#" or (char == "/" and following == "/"):
             line_comment = True
-            if char == "/":
-                index += 1
-        elif char == "/" and next_char == "*":
+        elif char == "/" and following == "*":
             block_comment = True
             index += 1
         elif char == "{":
@@ -92,46 +47,93 @@ def remove_redeclared_php_function(code: str, error: str):
         elif char == "}":
             depth -= 1
             if depth == 0:
-                end = index + 1
-                while end < len(code) and code[end] in " \t":
-                    end += 1
-                if end < len(code) and code[end] == "\n":
-                    end += 1
-                start = code.rfind("\n", 0, declaration.start()) + 1
-                return code[:start] + code[end:], name
+                return index + 1
         index += 1
-    return code, None
+    return None
+
+
+def remove_toplevel_function(code: str, name: str):
+    """Retire la déclaration d'une fonction globale (jamais une méthode).
+
+    Seules les déclarations en début de ligne sont retirées. Renvoie
+    (nouveau_code, True), ou (code inchangé, False) si rien n'a été retiré.
+    """
+    declaration = re.search(
+        rf"^function\s*&?\s*{re.escape(name)}\s*\(", code,
+        re.IGNORECASE | re.MULTILINE)
+    if not declaration:
+        return code, False
+    body_start = code.find("{", declaration.end())
+    if body_start < 0:
+        return code, False
+    end = _matching_end(code, body_start)
+    if end is None:
+        return code, False
+    while end < len(code) and code[end] in " \t":
+        end += 1
+    if end < len(code) and code[end] == "\n":
+        end += 1
+    return code[:declaration.start()] + code[end:], True
+
+
+def remove_native_redeclarations(code: str):
+    """Règle : une fonction du programme qui existe déjà en natif en PHP 8
+    (str_contains, array_key_last...) doit être retirée : PHP 8 la refuse.
+
+    Renvoie (nouveau_code, noms_retirés).
+    """
+    removed = []
+    for _ in range(10):
+        errors = validate_php(code)
+        if not errors:
+            break
+        # « previously declared » = doublon dans le programme : on n'y touche pas
+        match = re.search(
+            r"Cannot redeclare ([A-Za-z_][A-Za-z0-9_]*)\(\)(?! \(previously)",
+            errors[0])
+        if not match:
+            break
+        code, done = remove_toplevel_function(code, match.group(1))
+        if not done:
+            break
+        removed.append(match.group(1))
+    return code, removed
 
 
 def apply_php_rules(source: str) -> RulesResult:
-    """Convertit ce que Rector sait convertir (each, create_function, {}...)."""
-    if not RECTOR.exists():
-        return RulesResult(
-            code=source, changed=False,
-            warnings=["Rector n'est pas installé : règles PHP ignorées "
-                      "(voir tools/rector)"])
+    """Règles automatiques : Rector (each, create_function, {}...) puis la règle
+    « fonction déjà native »."""
+    code, warnings = source, []
 
-    with tempfile.TemporaryDirectory() as folder:
-        path = Path(folder) / "code.php"
-        path.write_text(source, encoding="utf-8")
-        try:
-            run = subprocess.run(
-                ["php", str(RECTOR), "process", str(path),
-                 "--config", str(RECTOR_CONFIG),
-                 "--no-progress-bar", "--no-diffs", "--clear-cache"],
-                capture_output=True, text=True, timeout=180, cwd=folder)
-        except subprocess.TimeoutExpired:
-            return RulesResult(source, False, ["Rector : délai dépassé, règles ignorées"])
-        new_code = path.read_text(encoding="utf-8")
+    if RECTOR.exists():
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "code.php"
+            path.write_text(source, encoding="utf-8")
+            try:
+                run = subprocess.run(
+                    ["php", str(RECTOR), "process", str(path),
+                     "--config", str(RECTOR_CONFIG),
+                     "--no-progress-bar", "--no-diffs", "--clear-cache"],
+                    capture_output=True, text=True, timeout=180, cwd=folder)
+                code = path.read_text(encoding="utf-8")
+                output = run.stdout + run.stderr
+                if "[ERROR]" in output:
+                    warnings.append("Rector a signalé une erreur : "
+                                    + " ".join(output.split())[:200])
+                elif run.returncode not in (0, 2):
+                    warnings.append(f"Rector a échoué (code {run.returncode}) : "
+                                    + " ".join(output.split())[:200])
+            except subprocess.TimeoutExpired:
+                warnings.append("Rector : délai dépassé, règles ignorées")
+    else:
+        warnings.append("Rector n'est pas installé : règles PHP ignorées "
+                        "(voir tools/rector)")
 
-    warnings = []
-    output = run.stdout + run.stderr
-    if "[ERROR]" in output:
-        warnings.append("Rector a signalé une erreur : " + " ".join(output.split())[:200])
-    elif run.returncode not in (0, 2):
-        warnings.append(f"Rector a échoué (code {run.returncode}) : "
-                        + " ".join(output.split())[:200])
-    return RulesResult(code=new_code, changed=new_code != source, warnings=warnings)
+    code, removed = remove_native_redeclarations(code)
+    for name in removed:
+        warnings.append(f"règle : fonction {name}() supprimée "
+                        "(elle existe déjà en natif en PHP 8)")
+    return RulesResult(code=code, changed=code != source, warnings=warnings)
 
 
 def detect_php_risks(code: str, original: str = None) -> list:

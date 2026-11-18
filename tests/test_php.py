@@ -26,6 +26,11 @@ AVANT = "    while (list($cle, $valeur) = each($ligne)) {"
 APRES = "    foreach ($ligne as $cle => $valeur) {"
 
 
+@pytest.fixture
+def sans_rector(monkeypatch):
+    monkeypatch.setattr(php_support, "RECTOR", Path("/introuvable/rector"))
+
+
 def ecrire(tmp_path):
     chemin = tmp_path / "lire.php"
     chemin.write_text(SOURCE, encoding="utf-8")
@@ -47,11 +52,43 @@ def test_fonction_deja_native_refusee_par_php_l():
     assert "Cannot redeclare str_contains" in erreurs[0]
 
 
-def test_regles_php_sans_rector(monkeypatch):
-    monkeypatch.setattr(php_support, "RECTOR", Path("/introuvable/rector"))
+def test_regles_php_sans_rector(sans_rector):
     resultat = php_support.apply_php_rules(SOURCE)
     assert resultat.code == SOURCE and resultat.changed is False
     assert "Rector n'est pas installé" in resultat.warnings[0]
+
+
+# ------------------------------------------- règle « fonction déjà native »
+POLYFILL = (
+    "<?php\n"
+    "function str_contains($a, $b) {\n"
+    "    $x = \"}\"; // une accolade dans une chaîne et un commentaire }\n"
+    "    return strpos($a, $b) !== false;\n"
+    "}\n"
+    "echo \"ok\";\n"
+)
+
+
+def test_regle_retire_une_fonction_deja_native(sans_rector):
+    resultat = php_support.apply_php_rules(POLYFILL)
+    assert "function str_contains" not in resultat.code
+    assert 'echo "ok";' in resultat.code
+    assert any("str_contains() supprimée" in w for w in resultat.warnings)
+    assert validate_code("php", resultat.code) == []
+
+
+def test_regle_ne_touche_pas_une_methode_du_meme_nom(sans_rector):
+    code = ("<?php\nclass A {\n    function str_contains($a) { return 1; }\n}\n"
+            "function str_contains($a, $b) { return true; }\n")
+    resultat = php_support.apply_php_rules(code)
+    assert "class A" in resultat.code and "function str_contains($a) { return 1; }" in resultat.code
+    assert "function str_contains($a, $b)" not in resultat.code
+
+
+def test_regle_ignore_un_doublon_du_programme(sans_rector):
+    code = "<?php\nfunction f() { return 1; }\nfunction f() { return 2; }\n"
+    resultat = php_support.apply_php_rules(code)
+    assert resultat.code == code and resultat.changed is False
 
 
 @besoin_de_rector
@@ -70,11 +107,19 @@ def test_detecteurs_php():
 
 
 @besoin_du_plugin
-def test_pipeline_php_hybride(tmp_path, monkeypatch):
-    monkeypatch.setattr(php_support, "RECTOR", Path("/introuvable/rector"))  # pas de règles
+def test_pipeline_php_hybride(tmp_path, sans_rector):
     llm = FakeLLM([edit(AVANT, APRES), APPROVED])
     etat = run_pipeline(ecrire(tmp_path), "php", "hybrid", llm)
     assert etat["llm_calls"] == 2                  # Migrateur + Reviewer
     assert "foreach" in etat["current_code"] and "each(" not in etat["current_code"]
     assert etat["approved"] is True and not etat["rolled_back"]
     assert "PHP 7 vers PHP 8" in llm.prompts[0]    # la consigne PHP a bien été chargée
+
+
+@besoin_du_plugin
+def test_le_reviewer_garde_la_parole(tmp_path, sans_rector):
+    """Aucune approbation forcée : un refus du Reviewer provoque un retour arrière."""
+    refus = '{"approved": false, "problems": ["la boucle a changé de sens"]}'
+    llm = FakeLLM([edit(AVANT, APRES), refus])
+    etat = run_pipeline(ecrire(tmp_path), "php", "hybrid", llm, max_iterations=1)
+    assert etat["approved"] is False and etat["rolled_back"] is True
