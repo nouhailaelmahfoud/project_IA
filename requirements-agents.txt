@@ -1,0 +1,8 @@
+langchain==1.4.10
+langchain-core==1.8.0
+langchain-ollama==1.1.0
+langchain-openai==1.7.4
+langgraph==1.2.20
+pydantic==2.14.3
+pytest==9.2.0
+python-dotenv==1.2.4
