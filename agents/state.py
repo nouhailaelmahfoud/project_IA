@@ -22,3 +22,6 @@ class MigrationState(TypedDict):
     tokens_in: int
     tokens_out: int
     log: list
+    verify: bool           #  tests dans Docker activés ?
+    tests: str             #  tests écrits avant la migration (peut être vide)
+    verification: dict     #  dernier résultat de verify() (erreurs, métriques)

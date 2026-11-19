@@ -183,7 +183,14 @@ def build_graph(llm, language: str):
 
     # -------------------------------------------------------- validation
     def validator_node(state: MigrationState):
-        errors = state["errors"] or validate_code(language, state["current_code"])
+        details = {}
+        if state["errors"]:
+            errors = state["errors"]
+        else:
+            errors = validate_code(
+                language, state["current_code"],
+                original=state["original_code"], file_path=state["file_path"],
+                tests=state["tests"], verify=state["verify"], details=details)
         detector = config.get("detector")
         if (not errors and state["mode"] == "hybrid" and detector
                 and state["use_detectors"] and state["iteration"] > 0):
@@ -194,7 +201,12 @@ def build_graph(llm, language: str):
                 if r["blocking"]
             ]
         message = "validation : OK" if not errors else f"validation : {len(errors)} erreur(s)"
-        return {"errors": errors, "log": state["log"] + [message]}
+        return {
+            "errors": errors,
+            "verification": details or state["verification"],
+            "log": state["log"] + [message]
+            + [f"  avertissement : {w[:150]}" for w in details.get("warnings", [])[:5]],
+        }
 
     # ---------------------------------------------------------- reviewer
     def reviewer_node(state: MigrationState):
@@ -282,7 +294,8 @@ def build_graph(llm, language: str):
 
 def run_pipeline(file_path, language: str, mode: str, llm,
                  issues=None, max_iterations: int = 3,
-                 llm_analyzer: bool = False, use_detectors: bool = True):
+                 llm_analyzer: bool = False, use_detectors: bool = True,
+                 verify: bool = False, tests: str = ""):
     """Migre un fichier et renvoie l'état final du pipeline."""
     code = Path(file_path).read_text(encoding="utf-8")
     initial_state = {
@@ -306,5 +319,8 @@ def run_pipeline(file_path, language: str, mode: str, llm,
         "tokens_in": 0,
         "tokens_out": 0,
         "log": [],
+        "verify": verify,
+        "tests": tests,
+        "verification": {},
     }
     return build_graph(llm, language).invoke(initial_state)

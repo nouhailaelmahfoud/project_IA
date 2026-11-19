@@ -43,6 +43,7 @@ MODES = {
 }
 
 EXPECTED_DIR = Path("eval/expected")
+USE_DOCKER = False  # True avec --docker : le code s'exécute dans Python 3.12 / PHP 8.3
 COLUMNS = [
     "langage", "fichier", "mode", "syntaxe", "s_execute", "resultat_attendu",
     "pieges_bloquants", "retour_arriere", "non_verifie",
@@ -62,6 +63,10 @@ def normalize(text: str) -> str:
 
 def execute(language: str, code: str, name: str, timeout: int = 20):
     """Exécute le code migré (corpus de test uniquement). Renvoie (ok, sortie)."""
+    if USE_DOCKER:
+        from verification.runner import run_script
+        result = run_script(language, "modern", name, code, timeout)
+        return result.ok, result.stdout
     command = [sys.executable] if language == "python" else [
         "php", "-d", "display_errors=stderr"]
     with tempfile.TemporaryDirectory() as folder:
@@ -190,7 +195,11 @@ def main():
     parser.add_argument("--provider", default="ollama", choices=["openrouter", "ollama"])
     parser.add_argument("--model", default=None)
     parser.add_argument("--max-iterations", type=int, default=2)
+    parser.add_argument("--docker", action="store_true",
+                        help="Tâche 3 : exécute le code migré dans Docker (Python 3.12 / PHP 8.3)")
     args = parser.parse_args()
+    global USE_DOCKER
+    USE_DOCKER = args.docker
 
     corpus = CORPORA[args.language]
     files = args.files or list(corpus)

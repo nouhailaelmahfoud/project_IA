@@ -39,4 +39,29 @@ Modèle local facultatif : installer Ollama puis `ollama pull qwen2.5-coder:3b`.
 python3 -m pytest tests -q
 ~~~
 
+Les tests de `tests/test_php.py` supposent un PHP 8 installé sur la machine : avec un PHP 7.x
+local, 4 de ces tests échouent. Cela ne concerne pas Docker (les images de la Tâche 3 embarquent
+leurs propres versions de PHP).
+
 Voir aussi `docs/tache2_agents.md` (architecture et lancement).
+
+## 6. Docker (Tâche 3)
+
+Installer Docker : Docker Desktop avec l'intégration WSL 2 sous Windows, ou Docker Engine sous
+Linux. Vérifier qu'il répond :
+
+~~~bash
+docker info
+~~~
+
+Puis construire les 4 images (Python 2.7 / 3.12, PHP 7.4 / 8.3). C'est long la première fois
+(10 à 25 minutes selon la connexion) :
+
+~~~bash
+python3 -m verification.run_verification build-images
+~~~
+
+Sous Windows (PowerShell), utiliser `python` au lieu de `python3`, et activer l'environnement
+avec `.venv\Scripts\Activate.ps1`.
+
+Voir `docs/tache3_verification.md` pour l'utilisation du moteur.

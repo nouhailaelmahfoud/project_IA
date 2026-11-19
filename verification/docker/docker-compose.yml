@@ -1,0 +1,16 @@
+# Construit les 4 images de la Tâche 3 :
+#   docker compose -f verification/docker/docker-compose.yml build
+# (les images sont aussi construites automatiquement au premier usage par runner.py)
+services:
+  py27:
+    image: smartmigrator-py27
+    build: { context: ., dockerfile: py27.Dockerfile }
+  py312:
+    image: smartmigrator-py312
+    build: { context: ., dockerfile: py312.Dockerfile }
+  php74:
+    image: smartmigrator-php74
+    build: { context: ., dockerfile: php74.Dockerfile }
+  php83:
+    image: smartmigrator-php83
+    build: { context: ., dockerfile: php83.Dockerfile }
