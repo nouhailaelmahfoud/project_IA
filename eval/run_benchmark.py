@@ -8,6 +8,7 @@ Exemples :
 import argparse
 import ast
 import csv
+import os
 import subprocess
 import sys
 import tempfile
@@ -219,9 +220,14 @@ def main():
 
     table = markdown_table(rows)
     md_path = results_dir / f"benchmark_{args.language}_{stamp}.md"
+    model_label = args.model or os.environ.get(
+        "OPENROUTER_MODEL" if args.provider == "openrouter" else "OLLAMA_MODEL",
+        "modèle par défaut")
+    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                            capture_output=True, text=True).stdout.strip() or "inconnu"
     md_path.write_text(
-        f"# Comparatif {args.language} ({args.provider}, "
-        f"{args.model or 'modèle par défaut'})\n\n{table}\n", encoding="utf-8")
+        f"# Comparatif {args.language} ({args.provider}, {model_label}, "
+        f"commit {commit})\n\n{table}\n", encoding="utf-8")
     print("\n" + table)
     print(f"\nRésultats enregistrés : {md_path} et {csv_path}")
 
