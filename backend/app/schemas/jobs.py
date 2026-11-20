@@ -1,4 +1,5 @@
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -13,11 +14,11 @@ class JobStatus(BaseModel):
     language: str
     status: str                       # pending | running | done | failed
     issues: list[dict[str, Any]] = []
-    result: Optional[dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
 
 class MigrateRequest(BaseModel):
     mode: str = "rules_only"          # rules_only | hybrid | llm_only
     provider: str = "openrouter"      # openrouter | ollama (ignoré en rules_only)
-    model: Optional[str] = None
+    model: str | None = None
     max_iterations: int = 3

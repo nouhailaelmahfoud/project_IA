@@ -1,6 +1,5 @@
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
@@ -17,13 +16,13 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 @router.post("", response_model=JobCreated)
 async def create_job(
     files: list[UploadFile] = File(...),
-    language: Optional[str] = Form(None),   # "php", "python" ou vide = auto
+    language: str | None = Form(None),   # "php", "python" ou vide = auto
 ):
     names = [f.filename for f in files]
     try:
         lang = language.lower() if language else detect_language(names)
     except ValueError as error:
-        raise HTTPException(400, str(error))
+                raise HTTPException(400, str(error)) from error
     if lang not in SUPPORTED_LANGUAGES:
         raise HTTPException(400, f"Langage non supporté : {lang}")
 
