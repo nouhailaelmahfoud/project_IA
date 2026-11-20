@@ -153,6 +153,15 @@ def test_golden_python_ignore_le_suffixe_long(docker):
     golden = char.record_golden("python", "a.py", "print('x = 300L')\n")
     assert golden["stdout"] == "x = 300"
 
+def test_en_tete_des_tests_python_est_corrige():
+    brut = ("import pytest\nfrom __future__ import print_function\n\n"
+            "def test_x():\n    assert Inventory() is not None\n")
+    corrige = char.fix_test_header(brut, "inventory")
+    assert corrige.startswith("from __future__ import print_function\n")
+    assert "from inventory import *" in corrige
+    deja = char.fix_test_header("import inventory\n\ndef test_x():\n    pass\n", "inventory")
+    assert "from inventory import *" not in deja
+
 def test_parse_coverage():
     sortie = ("Name    Stmts   Miss  Cover\n----\nm.py       10      2    80%\n"
               "TOTAL      10      2    80%\n")
@@ -172,6 +181,13 @@ def test_prepare_tests_corrige_puis_valide(docker):
     assert "assert m.x == 1" in result["tests"]
     assert result["llm_calls"] == 2
     assert "échouent sur le code ORIGINAL" in llm.prompts[1]  # l'échec est renvoyé au modèle
+
+def test_prepare_tests_garde_les_tests_qui_passent(docker):
+    melange = ("```python\nimport m\n\ndef test_bon():\n    assert m.x == 1\n\n"
+               "def test_faux():\n    assert m.x == 2\n```")
+    result = engine.prepare_tests(FakeLLM([melange]), "python", "m.py", "x = 1\n")
+    assert "test_bon" in result["tests"] and "test_faux" not in result["tests"]
+    assert result["llm_calls"] == 1
 
 
 def test_prepare_tests_abandonne_apres_deux_echecs(docker):

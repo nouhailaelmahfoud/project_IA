@@ -10,6 +10,7 @@ Deux niveaux :
   2. tests unitaires écrits par le LLM (pytest / PHPUnit), gardés seulement
      s'ils PASSENT sur l'original.
 """
+import ast
 import re
 from pathlib import Path
 
@@ -79,6 +80,35 @@ def extract_test_code(text: str) -> str:
         return candidate.strip() + "\n"
     return ""
 
+def fix_test_header(tests: str, module: str) -> str:
+    """Corrige deux oublis fréquents des petits modèles : `from __future__` doit être
+    la première instruction du fichier, et le module testé doit être importé."""
+    lines = tests.splitlines()
+    futures = list(dict.fromkeys(l for l in lines if l.strip().startswith("from __future__")))
+    rest = [l for l in lines if not l.strip().startswith("from __future__")]
+    body = "\n".join(rest).strip("\n")
+    if not re.search(rf"^\s*(import {module}\b|from {module} import)", body, re.M):
+        body = f"from {module} import *\n" + body
+    header = futures or ["from __future__ import print_function"]
+    return "\n".join(header) + "\n" + body + "\n"
+
+def keep_passing_tests(tests: str, report: str) -> str:
+    """Retire les fonctions de test qui échouent sur l'original (leur valeur attendue
+    est fausse) et garde les autres. Renvoie '' s'il ne reste aucun test."""
+    failed = set(re.findall(r"^(?:FAILED|FAIL)\s+\S+::(\w+)", report, re.M))
+    if not failed:
+        return ""
+    try:
+        tree = ast.parse(tests)
+    except SyntaxError:
+        return ""
+    tree.body = [node for node in tree.body
+                 if not (isinstance(node, ast.FunctionDef) and node.name in failed)]
+    if not any(isinstance(n, ast.FunctionDef) and n.name.startswith("test")
+               for n in tree.body):
+        return ""
+    return ast.unparse(tree) + "\n"
+
 
 def generate_tests(llm, language: str, filename: str, original: str, feedback: str = ""):
     """Demande au LLM des tests qui décrivent le comportement de l'ORIGINAL.
@@ -89,7 +119,10 @@ def generate_tests(llm, language: str, filename: str, original: str, feedback: s
     prompt = load_prompt(folder, "test_writer", code=original, filename=filename,
                          module=module_name(filename), feedback=feedback)
     text, tokens_in, tokens_out = ask_llm(llm, prompt, "générateur de tests")
-    return extract_test_code(text), tokens_in, tokens_out
+    tests = extract_test_code(text)
+    if tests and language == "python":
+        tests = fix_test_header(tests, module_name(filename))
+    return tests, tokens_in, tokens_out
 
 
 def run_tests(language: str, side: str, filename: str, code: str, tests: str,
@@ -97,7 +130,7 @@ def run_tests(language: str, side: str, filename: str, code: str, tests: str,
     """Lance les tests sur `code` dans l'environnement `side`. Renvoie un RunResult."""
     if language == "python":
         files = {filename: code, "test_generated.py": tests}
-        command = ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider"]
+        command = ["python", "-m", "pytest", "-q", "-rf", "-p", "no:cacheprovider"]
         if side == "modern":
             command += [f"--cov={module_name(filename)}", "--cov-report=term"]
         command.append("test_generated.py")
