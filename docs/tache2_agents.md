@@ -48,7 +48,7 @@ Les sorties attendues sont dans `eval/expected/`.
 
 ## Limites connues
 
-- Le fichier entier est envoyé au modèle (pas de découpage en morceaux pour les gros fichiers).
+- Au-delà de 150 lignes, le Migrateur et le Reviewer ne voient que des extraits (`agents/chunks.py`). L'Analyseur LLM (mode `llm_only`) voit encore le fichier entier.
 - Sorties de référence Python déduites du comportement de Python 2, à confirmer avec la Tâche 3 (Docker).
 - Les programmes PHP du corpus ne sont pas tous exécutables (base de données, locale).
 - Peu de fichiers et un seul essai par cas : les résultats sont indicatifs.

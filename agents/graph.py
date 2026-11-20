@@ -4,6 +4,7 @@ from pathlib import Path
 from langgraph.graph import END, START, StateGraph
 
 from agents.languages import LANGUAGES
+from agents.chunks import join_notes, large_note, migrator_view, reviewer_excerpts
 from agents.edits import apply_edits, number_lines, parse_edits, verify_risks
 from agents.llm_utils import ask_llm, extract_json, parse_migration, save_debug
 from agents.prompt_loader import load_prompt
@@ -140,7 +141,9 @@ def build_graph(llm, language: str):
 
         prompt = load_prompt(
             prompt_dir, "migrator",
-            code=state["current_code"], risks=risks_text, feedback=feedback,
+            code=migrator_view(state["current_code"], state["risks"], state["errors"]),
+            risks=risks_text,
+            feedback=join_notes(feedback, large_note(state["current_code"])),
         )
         text, tokens_in, tokens_out = ask_llm(
             llm, prompt, f"migrateur (tour {state['iteration'] + 1})")
@@ -212,7 +215,8 @@ def build_graph(llm, language: str):
     def reviewer_node(state: MigrationState):
         prompt = load_prompt(
             prompt_dir, "reviewer",
-            original=state["original_code"], migrated=state["current_code"],
+            original=reviewer_excerpts(state["original_code"], state["current_code"])[0],
+            migrated=reviewer_excerpts(state["original_code"], state["current_code"])[1],
         )
         text, tokens_in, tokens_out = ask_llm(llm, prompt, "reviewer")
 
