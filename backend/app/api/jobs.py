@@ -1,3 +1,6 @@
+import traceback
+from backend.app.schemas.jobs import MigrateRequest
+from backend.app.services.migration_service import migrate_job
 import dataclasses
 import uuid
 import json
@@ -61,3 +64,19 @@ def get_job(job_id: str):
     if job_id not in JOBS:
         raise HTTPException(404, "Job introuvable")
     return JOBS[job_id]
+
+@router.post("/{job_id}/migrate", response_model=JobStatus)
+def migrate(job_id: str, request: MigrateRequest):
+    job = JOBS.get(job_id)
+    if job is None:
+        raise HTTPException(404, "Job introuvable")
+    job.update(status="running", error=None)
+    try:  # synchrone pour l'instant ; ira dans Celery à l'étape suivante
+        job["result"] = migrate_job(job, WORKSPACE / job_id, request.mode,
+                                    request.provider, request.model,
+                                    request.max_iterations)
+        job["status"] = "done"
+    except Exception as error:
+        traceback.print_exc()
+        job.update(status="failed", error=f"{type(error).__name__}: {error}")
+    return job
