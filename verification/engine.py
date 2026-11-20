@@ -95,7 +95,7 @@ def prepare_tests(llm, language: str, file_path: str, original: str,
             tests = candidate
             log.append(f"tests (essai {attempt}) : validés sur le code original")
             break
-        kept = char.keep_passing_tests(candidate, result.stdout + result.stderr)
+        kept = char.keep_passing_tests(candidate, result.stdout + result.stderr, language)
         if kept:
             recheck = char.run_tests(language, "legacy", filename, original, kept)
             if recheck.ok:

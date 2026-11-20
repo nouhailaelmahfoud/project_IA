@@ -189,6 +189,15 @@ def test_prepare_tests_garde_les_tests_qui_passent(docker):
     assert "test_bon" in result["tests"] and "test_faux" not in result["tests"]
     assert result["llm_calls"] == 1
 
+def test_garde_les_tests_php_qui_passent():
+    tests = ("<?php\nclass GeneratedTest extends PHPUnit\\Framework\\TestCase\n{\n"
+             "    public function testBon()\n    {\n        $this->assertTrue(true);\n    }\n\n"
+             "    public function testFaux()\n    {\n        $this->assertTrue(false);\n    }\n}\n")
+    rapport = "There was 1 failure:\n\n1) GeneratedTest::testFaux\nFailed asserting that false is true.\n"
+    garde = char.keep_passing_tests(tests, rapport, "php")
+    assert "testBon" in garde and "testFaux" not in garde
+    assert garde.count("{") == garde.count("}")
+
 
 def test_prepare_tests_abandonne_apres_deux_echecs(docker):
     mauvais = "```python\ndef test_x():\n    assert False\n```"
