@@ -1,6 +1,11 @@
 services:
   redis:
     image: redis:7-alpine
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 256m
+    cpus: 0.5
 
   api:
     build:
@@ -13,11 +18,17 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       PYTHONPATH: /app
-
     volumes:
       - ./workspace:/app/workspace
     depends_on:
       - redis
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: 1.0
 
   worker:
     build:
@@ -28,8 +39,16 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       PYTHONPATH: /app
-
     volumes:
       - ./workspace:/app/workspace
     depends_on:
       - redis
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2.0
+    tmpfs:
+      - /tmp:size=256m
