@@ -95,6 +95,14 @@ def prepare_tests(llm, language: str, file_path: str, original: str,
             tests = candidate
             log.append(f"tests (essai {attempt}) : validés sur le code original")
             break
+        kept = char.keep_passing_tests(candidate, result.stdout + result.stderr, language)
+        if kept:
+            recheck = char.run_tests(language, "legacy", filename, original, kept)
+            if recheck.ok:
+                tests = kept
+                log.append(f"tests (essai {attempt}) : tests faux retirés, "
+                           "le reste est validé sur le code original")
+                break
         feedback = ("Tes tests précédents échouent sur le code ORIGINAL, corrige-les :\n"
                     + (result.stdout + result.stderr).strip()[-800:])
         log.append(f"tests (essai {attempt}) : échec sur le code original")
