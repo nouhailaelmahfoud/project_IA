@@ -45,6 +45,8 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
         relative = source.relative_to(root)
         issues = [i for i in job["issues"]
                   if Path(i.get("file_path", "")) == source]
+        # Lu avant le pipeline : dans un dépôt, le fichier est ensuite écrasé
+        original_code = source.read_text(encoding="utf-8")
         state = run_pipeline(source, language, mode, llm, issues=issues,
                              max_iterations=max_iterations)
         # Dans un dépôt, on n'écrit que le code qui passe la validation
@@ -63,6 +65,7 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
             "tokens_in": state["tokens_in"],
             "tokens_out": state["tokens_out"],
             "log": state["log"],
+            "original_code": original_code,
             "migrated_code": state["current_code"],
         }
     return json.loads(json.dumps({"mode": mode, "files": files}, default=str))
