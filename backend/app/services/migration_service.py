@@ -3,8 +3,10 @@ import json
 from pathlib import Path
 
 from backend.app.core.config import EXTENSIONS
+from core.plugin_base import IGNORED_DIRECTORIES
 
 VALID_MODES = ("rules_only", "hybrid", "llm_only")
+MAX_FILES = 50
 
 
 def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
@@ -20,17 +22,39 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
     llm = None if mode == "rules_only" else get_llm(provider, model)
     extension = next(e for e, lang in EXTENSIONS.items() if lang == language)
 
-    out_dir = job_dir / "migrated"
-    out_dir.mkdir(exist_ok=True)
+    repo_dir = job_dir / "repo"
+    in_repo = repo_dir.is_dir()
+    if in_repo:
+        root = out_root = repo_dir
+        sources = [p for p in sorted(root.rglob(f"*{extension}"))
+                   if not IGNORED_DIRECTORIES.intersection(
+                       p.relative_to(root).parts)]
+    else:
+        root = job_dir
+        out_root = job_dir / "migrated"
+        out_root.mkdir(exist_ok=True)
+        sources = sorted(root.glob(f"*{extension}"))
+
+    if not sources:
+        raise ValueError(f"Aucun fichier {extension} à migrer dans ce job.")
+    if len(sources) > MAX_FILES:
+        raise ValueError(f"Trop de fichiers ({len(sources)} > {MAX_FILES}).")
 
     files = {}
-    for source in sorted(job_dir.glob(f"*{extension}")):
+    for source in sources:
+        relative = source.relative_to(root)
         issues = [i for i in job["issues"]
-                  if Path(i.get("file_path", "")).name == source.name]
+                  if Path(i.get("file_path", "")) == source]
         state = run_pipeline(source, language, mode, llm, issues=issues,
                              max_iterations=max_iterations)
-        (out_dir / source.name).write_text(state["current_code"], encoding="utf-8")
-        files[source.name] = {
+        # Dans un dépôt, on n'écrit que le code qui passe la validation
+        written = not (in_repo and state["errors"])
+        if written:
+            target = out_root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(state["current_code"], encoding="utf-8")
+        files[relative.as_posix()] = {
+            "written": written,
             "approved": state["approved"],
             "rolled_back": state["rolled_back"],
             "errors": state["errors"],
@@ -41,6 +65,4 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
             "log": state["log"],
             "migrated_code": state["current_code"],
         }
-    if not files:
-        raise ValueError(f"Aucun fichier {extension} à migrer dans ce job.")
     return json.loads(json.dumps({"mode": mode, "files": files}, default=str))
