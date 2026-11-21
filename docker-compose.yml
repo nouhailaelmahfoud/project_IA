@@ -52,3 +52,21 @@ services:
     cpus: 2.0
     tmpfs:
       - /tmp:size=256m
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      API_URL: http://api:8000
+    depends_on:
+      - api
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: 1.0
