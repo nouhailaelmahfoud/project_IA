@@ -31,7 +31,11 @@ with st.sidebar:
     max_iterations = st.slider("Itérations max", 1, 5, 3)
     verify = st.checkbox("Vérifier dans Docker",
                          help="Compare le comportement avant/après et lance l'analyse statique. "
-                              "Demande que Docker soit disponible pour le worker.")
+                              "Demande que le worker de vérification tourne sur ton PC "
+                              "(voir docs/tache3_verification.md).")
+    if verify:
+        st.warning("Lance d'abord le worker de vérification sur ton PC, sinon la migration "
+                   "restera en attente.")
     st.header("Hypothèses de temps")
     min_issue = st.number_input("Minutes / problème corrigé à la main", 1, 120,
                                 MIN_PER_ISSUE_MANUAL)

@@ -69,9 +69,11 @@ def migrate(job_id: str, request: MigrateRequest):
     if request.create_pr and not job.get("repo_url"):
         raise HTTPException(400, "create_pr exige un job créé avec repo_url.")
     job = update_job(job_id, status="pending", error=None)
-    migrate_job_task.delay(job_id, request.mode, request.provider,
-                           request.model, request.max_iterations,
-                           request.create_pr, request.verify)
+    migrate_job_task.apply_async(
+        args=[job_id, request.mode, request.provider, request.model,
+              request.max_iterations, request.create_pr, request.verify],
+        queue="verify" if request.verify else "celery",
+    )
     if job.get("pr_url"):
         raise HTTPException(
             409, "Une Pull Request existe déjà pour ce job : "

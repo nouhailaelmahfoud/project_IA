@@ -72,3 +72,28 @@ taux de réussite, couverture, nombre d'itérations, retours arrière, avertisse
 - La couverture PHP dépend de pcov et de PHPUnit 10 (essai « au mieux »).
 - La normalisation Python 2 → 3 est volontairement limitée aux suffixes `L` et `u` ;
   d'autres différences (ordre des dictionnaires, par exemple) restent signalées.
+
+  
+## Lancer la vérification depuis l'application web
+
+La case « Vérifier dans Docker » de l'interface a besoin de Docker, que le worker
+du conteneur n'a pas. Les jobs avec vérification passent donc par une file Celery
+séparée (`verify`), traitée par un worker lancé sur la machine hôte.
+
+1. Démarrer l'application : `docker compose up -d` (Redis est exposé sur `127.0.0.1:6379`).
+2. Dans un second terminal, à la racine du projet, avec un environnement virtuel contenant
+   `requirements.txt`, `requirements-agents.txt` et `backend/requirements.txt` :
+
+   ```powershell
+   $env:REDIS_URL = "redis://localhost:6379/0"
+   $env:PYTHONPATH = (Get-Location).Path
+   python -m celery -A backend.app.workers.celery_app worker -Q verify -n verif@%h --pool=solo --loglevel=info
+   ```
+
+3. Dans l'interface, cocher « Vérifier dans Docker » puis lancer la migration.
+
+Limites :
+- Si le worker de vérification n'est pas lancé, un job avec la case cochée reste en attente.
+- Sur la machine hôte, Composer, Rector et les détecteurs PHP ne sont pas disponibles :
+  la vérification PHP y est plus limitée que dans le conteneur. Python fonctionne normalement.
+- `--pool=solo` est nécessaire sous Windows.
