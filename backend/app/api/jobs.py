@@ -71,7 +71,7 @@ def migrate(job_id: str, request: MigrateRequest):
     job = update_job(job_id, status="pending", error=None)
     migrate_job_task.delay(job_id, request.mode, request.provider,
                            request.model, request.max_iterations,
-                           request.create_pr)
+                           request.create_pr, request.verify)
     if job.get("pr_url"):
         raise HTTPException(
             409, "Une Pull Request existe déjà pour ce job : "

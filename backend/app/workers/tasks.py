@@ -46,12 +46,14 @@ def analyze_job(job_id: str):
 
 @celery_app.task(name="migrate_job")
 def migrate_job_task(job_id: str, mode: str, provider: str, model,
-                     max_iterations: int, create_pr: bool = False):
+                     max_iterations: int, create_pr: bool = False,
+                     verify: bool = False):
     job = get_job(job_id)
     update_job(job_id, status="running", error=None)
     try:
         job_dir = WORKSPACE / job_id
-        result = migrate_job(job, job_dir, mode, provider, model, max_iterations)
+        result = migrate_job(job, job_dir, mode, provider, model, max_iterations,
+                             verify)
         fields = {"result": result}
         if create_pr:
             fields["pr_url"] = open_pull_request(job, job_dir / "repo", result)

@@ -6,13 +6,16 @@ MIN_PER_ISSUE_MANUAL = 10   # minutes pour corriger à la main un problème
 MIN_REVIEW_PER_FILE = 3     # minutes pour relire un fichier migré automatiquement
 
 
-def file_status(info: dict) -> str:
+def file_status(info: dict, mode: str = "") -> str:
     """Résume l'état d'un fichier migré en un mot."""
     if info["rolled_back"]:
         return "retour arrière"
     if info["errors"]:
         return "erreurs"
-    return "ok" if info["approved"] else "non approuvé"
+    if info["approved"]:
+        return "ok"
+    # rules_only : aucun relecteur n'est lancé, le fichier est seulement validé (syntaxe)
+    return "validé (syntaxe), non relu" if mode == "rules_only" else "non approuvé"
 
 
 def issues_for_file(issues: list, relative_path: str) -> list:
@@ -28,7 +31,7 @@ def dashboard(job: dict, min_per_issue: float = MIN_PER_ISSUE_MANUAL,
     issues = job.get("issues", [])
     rows, fixed, remaining = [], 0, 0
     for name, info in files.items():
-        status = file_status(info)
+        status = file_status(info, (job.get("result") or {}).get("mode", ""))
         found = len(issues_for_file(issues, name))
         blocking = len(info["errors"])
         ok = status == "ok"

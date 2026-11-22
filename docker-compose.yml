@@ -39,6 +39,7 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       PYTHONPATH: /app
+      OLLAMA_HOST: http://host.docker.internal:11434
     volumes:
       - ./workspace:/app/workspace
     depends_on:

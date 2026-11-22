@@ -29,6 +29,9 @@ with st.sidebar:
         provider = st.selectbox("Fournisseur LLM", ["openrouter", "ollama"])
         model = st.text_input("Modèle (facultatif)")
     max_iterations = st.slider("Itérations max", 1, 5, 3)
+    verify = st.checkbox("Vérifier dans Docker",
+                         help="Compare le comportement avant/après et lance l'analyse statique. "
+                              "Demande que Docker soit disponible pour le worker.")
     st.header("Hypothèses de temps")
     min_issue = st.number_input("Minutes / problème corrigé à la main", 1, 120,
                                 MIN_PER_ISSUE_MANUAL)
@@ -72,7 +75,8 @@ if job["issues"]:
 if st.button("Lancer la migration"):
     try:
         with st.spinner("Migration en cours (peut durer plusieurs minutes avec un LLM)…"):
-            api_client.start_migration(job["job_id"], mode, provider, model, max_iterations)
+            api_client.start_migration(job["job_id"], mode, provider, model, max_iterations,
+                                       verify=verify)
             st.session_state["job"] = job = api_client.wait_for_job(job["job_id"])
     except Exception as error:
         st.error(str(error))
@@ -94,6 +98,9 @@ c4.metric("Temps gagné (estimé)", f"{stats['minutes_saved']:.0f} min")
 st.dataframe(pd.DataFrame(stats["rows"]), use_container_width=True, hide_index=True)
 st.caption(f"Temps gagné = {min_issue} min × problèmes corrigés − {min_review} min de relecture "
            "× fichiers. C'est une estimation, pas une mesure.")
+if job["result"].get("mode") == "rules_only":
+    st.caption("Mode rules_only : aucun relecteur n'est lancé, les fichiers restent donc « non relus » "
+               "et le temps gagné reste à 0. Utilise le mode hybrid pour obtenir une approbation.")
 
 # ---------- Étape 4 : diff avant / après ----------
 st.subheader("4. Différences avant / après")
@@ -108,6 +115,18 @@ with st.expander("Journal de migration"):
     st.code("\n".join(str(line) for line in info["log"]) or "(vide)")
 if info["errors"]:
     st.warning("Erreurs de validation : " + " ; ".join(str(e) for e in info["errors"]))
+
+# Vérification de la Tâche 3 (affichée seulement si la case a été cochée)
+verification = info.get("verification") or {}
+vmetrics = verification.get("metrics", {})
+if vmetrics.get("skipped"):
+    st.info("Vérification Docker ignorée : Docker n'est pas disponible pour le worker.")
+elif vmetrics:
+    v1, v2, v3 = st.columns(3)
+    v1.metric("Même comportement",
+              {True: "oui", False: "non", None: "non comparé"}[vmetrics.get("behaviour_ok")])
+    v2.metric("Erreurs statiques", vmetrics.get("static_errors", 0))
+    v3.metric("Avertissements", len(verification.get("warnings", [])))
 
 # ---------- Étape 5 : rapport PDF ----------
 st.subheader("5. Rapport")

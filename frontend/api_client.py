@@ -31,9 +31,10 @@ def get_job(job_id: str) -> dict:
 
 
 def start_migration(job_id: str, mode: str, provider: str, model, max_iterations: int,
-                    create_pr: bool = False) -> dict:
+                    create_pr: bool = False, verify: bool = False) -> dict:
     body = {"mode": mode, "provider": provider, "model": model or None,
-            "max_iterations": max_iterations, "create_pr": create_pr}
+            "max_iterations": max_iterations, "create_pr": create_pr,
+            "verify": verify}
     return _check(requests.post(f"{API_URL}/jobs/{job_id}/migrate", json=body, timeout=TIMEOUT))
 
 

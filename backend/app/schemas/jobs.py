@@ -26,3 +26,4 @@ class MigrateRequest(BaseModel):
     model: str | None = None
     max_iterations: int = 3
     create_pr: bool = False           # exige un job créé avec repo_url
+    verify: bool = False              # vérification dans Docker (Tâche 3)

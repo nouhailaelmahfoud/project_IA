@@ -10,7 +10,7 @@ MAX_FILES = 50
 
 
 def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
-                model, max_iterations: int) -> dict:
+                model, max_iterations: int, verify: bool = False) -> dict:
     # Imports ici : l'API démarre même si les dépendances des agents manquent
     from agents.graph import run_pipeline
     from agents.llm import get_llm
@@ -48,7 +48,7 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
         # Lu avant le pipeline : dans un dépôt, le fichier est ensuite écrasé
         original_code = source.read_text(encoding="utf-8")
         state = run_pipeline(source, language, mode, llm, issues=issues,
-                             max_iterations=max_iterations)
+                             max_iterations=max_iterations, verify=verify)
         # Dans un dépôt, on n'écrit que le code qui passe la validation
         written = not (in_repo and state["errors"])
         if written:
@@ -65,6 +65,7 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
             "tokens_in": state["tokens_in"],
             "tokens_out": state["tokens_out"],
             "log": state["log"],
+            "verification": state["verification"],
             "original_code": original_code,
             "migrated_code": state["current_code"],
         }
