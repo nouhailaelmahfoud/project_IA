@@ -24,6 +24,20 @@ def issues_for_file(issues: list, relative_path: str) -> list:
     return [i for i in issues if Path(i.get("file_path", "")).as_posix().endswith(name)]
 
 
+def fixed_issues(info: dict, status: str, found: int) -> int:
+    """Problèmes réellement corrigés : détecteurs relancés avant/après la migration.
+
+    Si cette mesure n'existe pas (analyse impossible), on retombe sur l'ancienne règle :
+    tout est compté seulement si le fichier est approuvé.
+    """
+    before, after = info.get("issues_before"), info.get("issues_after")
+    if before is not None and after is not None:
+        if status in ("erreurs", "retour arrière"):
+            return 0
+        return max(before - after, 0)
+    return found if status == "ok" else 0
+
+
 def dashboard(job: dict, min_per_issue: float = MIN_PER_ISSUE_MANUAL,
               min_review: float = MIN_REVIEW_PER_FILE) -> dict:
     """Chiffres du tableau de bord à partir d'un job terminé."""
@@ -34,10 +48,13 @@ def dashboard(job: dict, min_per_issue: float = MIN_PER_ISSUE_MANUAL,
         status = file_status(info, (job.get("result") or {}).get("mode", ""))
         found = len(issues_for_file(issues, name))
         blocking = len(info["errors"])
-        ok = status == "ok"
-        fixed += found if ok else 0
+        file_fixed = fixed_issues(info, status, found)
+        fixed += file_fixed
         remaining += blocking
+        left = info.get("issues_after")
         rows.append({"Fichier": name, "État": status, "Problèmes détectés": found,
+                     "Problèmes corrigés": file_fixed,
+                     "Problèmes restants": "?" if left is None else left,
                      "Erreurs restantes": blocking, "Itérations": info["iterations"],
                      "Appels LLM": info["llm_calls"]})
     manual = fixed * min_per_issue
@@ -50,6 +67,6 @@ def dashboard(job: dict, min_per_issue: float = MIN_PER_ISSUE_MANUAL,
         "issues_fixed": fixed,
         "errors_remaining": remaining,
         "minutes_manual": manual,
-        "minutes_automated": automated,
         "minutes_saved": max(manual - automated, 0),
+        "minutes_automated": automated,
     }

@@ -1,12 +1,60 @@
 """Appelle le pipeline d'agents (Tâche 2) sur les fichiers d'un job."""
+import ast
 import json
+import tempfile
 from pathlib import Path
 
 from backend.app.core.config import EXTENSIONS
+from backend.app.services.plugin_selector import get_plugin
 from core.plugin_base import IGNORED_DIRECTORIES
 
 VALID_MODES = ("rules_only", "hybrid", "llm_only")
 MAX_FILES = 50
+
+
+# Éléments de Python 2 supprimés en Python 3 : s'ils restent dans le code migré, ils plantent
+PY2_NAMES = {"xrange", "raw_input", "unicode", "long", "basestring"}
+PY2_ATTRIBUTES = {"has_key", "iteritems", "itervalues", "iterkeys"}
+
+
+def python2_leftovers(code: str):
+    """Nombre de constructions Python 2 qui restent dans du code censé être en Python 3.
+
+    On ne relance pas le détecteur de la Tâche 1 ici : il repose sur 2to3, qui signale encore
+    du Python 3 correct (ex. print("a", b) ou input()). On lit donc le code comme du Python 3 :
+    syntaxe invalide => None (inconnu), sinon on compte les noms supprimés encore utilisés.
+    """
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return None
+    return sum(
+        (isinstance(node, ast.Name) and node.id in PY2_NAMES)
+        or (isinstance(node, ast.Attribute) and node.attr in PY2_ATTRIBUTES)
+        for node in ast.walk(tree))
+
+
+def count_issues(plugin, language: str, extension: str, original: str, migrated: str):
+    """Problèmes avant et après la migration : (avant, après), None si inconnu.
+
+    Avant : détecteurs de la Tâche 1 sur le code original.
+    Après : Python = constructions Python 2 restantes ; autres langages = détecteurs relancés.
+    """
+    if plugin is None:
+        return None, None
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / f"check{extension}"
+
+        def detect(code: str):
+            path.write_text(code, encoding="utf-8")
+            try:
+                return len(plugin.analyze_file(path))
+            except Exception:  # noqa: BLE001 - une analyse ratée ne doit pas faire échouer la migration
+                return None
+
+        before = detect(original)
+        after = python2_leftovers(migrated) if language == "python" else detect(migrated)
+    return before, after
 
 
 def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
@@ -40,6 +88,11 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
     if len(sources) > MAX_FILES:
         raise ValueError(f"Trop de fichiers ({len(sources)} > {MAX_FILES}).")
 
+    try:
+        plugin = get_plugin(language)
+    except Exception:  # noqa: BLE001
+        plugin = None
+
     files = {}
     for source in sources:
         relative = source.relative_to(root)
@@ -49,6 +102,9 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
         original_code = source.read_text(encoding="utf-8")
         state = run_pipeline(source, language, mode, llm, issues=issues,
                              max_iterations=max_iterations, verify=verify)
+        # Mesure réelle : problèmes avant / après la migration
+        issues_before, issues_after = count_issues(
+            plugin, language, extension, original_code, state["current_code"])
         # Dans un dépôt, on n'écrit que le code qui passe la validation
         written = not (in_repo and state["errors"])
         if written:
@@ -66,6 +122,8 @@ def migrate_job(job: dict, job_dir: Path, mode: str, provider: str,
             "tokens_out": state["tokens_out"],
             "log": state["log"],
             "verification": state["verification"],
+            "issues_before": issues_before,
+            "issues_after": issues_after,
             "original_code": original_code,
             "migrated_code": state["current_code"],
         }

@@ -3,6 +3,8 @@
 Lancer :  streamlit run frontend/app.py      (l'API doit tourner sur API_URL)
 """
 import difflib
+import io
+import zipfile
 
 import pandas as pd
 import streamlit as st
@@ -102,9 +104,12 @@ c4.metric("Temps gagné (estimé)", f"{stats['minutes_saved']:.0f} min")
 st.dataframe(pd.DataFrame(stats["rows"]), use_container_width=True, hide_index=True)
 st.caption(f"Temps gagné = {min_issue} min × problèmes corrigés − {min_review} min de relecture "
            "× fichiers. C'est une estimation, pas une mesure.")
+st.caption("Problèmes corrigés = problèmes détectés avant la migration − constructions "
+           "restantes après (Python 2 encore présent dans le code migré).")
 if job["result"].get("mode") == "rules_only":
-    st.caption("Mode rules_only : aucun relecteur n'est lancé, les fichiers restent donc « non relus » "
-               "et le temps gagné reste à 0. Utilise le mode hybrid pour obtenir une approbation.")
+    st.caption("Mode rules_only : les règles seules ne vérifient pas le comportement et aucun "
+               "relecteur n'est lancé. Utilise le mode hybrid, et « Vérifier dans Docker » pour "
+               "confirmer que le comportement est conservé.")
 
 # ---------- Étape 4 : diff avant / après ----------
 st.subheader("4. Différences avant / après")
@@ -132,9 +137,20 @@ elif vmetrics:
     v2.metric("Erreurs statiques", vmetrics.get("static_errors", 0))
     v3.metric("Avertissements", len(verification.get("warnings", [])))
 
-# ---------- Étape 5 : rapport PDF ----------
-st.subheader("5. Rapport")
-st.download_button("Télécharger le rapport PDF",
+# ---------- Étape 5 : téléchargements ----------
+st.subheader("5. Téléchargements")
+if info["errors"]:
+    st.caption("Ce fichier a des erreurs de validation : relis-le avant de l'utiliser.")
+archive = io.BytesIO()
+with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
+    for file_name, file_info in files_result.items():
+        bundle.writestr(file_name.lstrip("/"), file_info["migrated_code"])
+d1, d2, d3 = st.columns(3)
+d1.download_button(f"Code migré : {name.split('/')[-1]}", data=info["migrated_code"],
+                   file_name=name.split("/")[-1], mime="text/plain")
+d2.download_button("Tous les fichiers migrés (.zip)", data=archive.getvalue(),
+                   file_name=f"code_migre_{job['job_id']}.zip", mime="application/zip")
+d3.download_button("Rapport PDF",
                    data=build_report(job, min_issue, min_review),
                    file_name=f"rapport_migration_{job['job_id']}.pdf",
                    mime="application/pdf")
